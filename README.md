@@ -2,7 +2,9 @@
 
 An AI-powered budget tracking application with real-time transaction categorization, insights, and anomaly detection.
 
-**Live App:** https://github.com/ShlokSathwara/AI-BUDGET-TRACKER
+**Live App (GitHub):** https://github.com/ShlokSathwara/AI-BUDGET-TRACKER
+
+**Deployed Backend (Render):** https://ai-budget-tracker-pqax.onrender.com
 
 ---
 
