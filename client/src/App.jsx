@@ -7,7 +7,6 @@ import Analytics from './components/Analytics';
 import PredictionCard from './components/PredictionCard';
 import VoiceAssistant from './components/VoiceAssistant';
 import AIChatAssistant from './components/AIChatAssistant';
-import PhoneAuth from './components/PhoneAuth';
 import SavingPlanner from './components/SavingPlanner';
 import { getTransactions } from './utils/api';
 
@@ -51,7 +50,7 @@ const AnimatedBackground = () => {
 };
 
 // Mobile-Friendly Navbar Component
-const Navbar = ({ isAuthenticated, user, onLogout }) => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
@@ -60,12 +59,6 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
     { name: 'Reports', href: '#' },
     { name: 'Settings', href: '#' },
   ];
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    onLogout();
-  };
 
   return (
     <motion.header 
@@ -102,30 +95,13 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
               {item.name}
             </motion.button>
           ))}
-          {isAuthenticated ? (
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-white">
-                <User className="w-5 h-5" />
-                <span>{user?.name || user?.phoneNumber || 'User'}</span>
-              </div>
-              <motion.button 
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 classy-button"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleLogout}
-              >
-                Logout
-              </motion.button>
-            </div>
-          ) : (
-            <motion.button 
-              className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 classy-button"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Sign In
-            </motion.button>
-          )}
+          <motion.button 
+            className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 classy-button"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Demo Mode
+          </motion.button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -158,36 +134,14 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
                   {item.name}
                 </motion.button>
               ))}
-              {isAuthenticated ? (
-                <>
-                  <div className="px-4 py-3 text-white">
-                    <div className="flex items-center space-x-2">
-                      <User className="w-5 h-5" />
-                      <span>{user?.name || user?.phoneNumber || 'User'}</span>
-                    </div>
-                  </div>
-                  <motion.button 
-                    className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg classy-button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    Logout
-                  </motion.button>
-                </>
-              ) : (
-                <motion.button 
-                  className="mt-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg classy-button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Sign In
-                </motion.button>
-              )}
+              <motion.button 
+                className="mt-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg classy-button"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Demo Mode
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -199,25 +153,9 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
 function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [showPhoneAuth, setShowPhoneAuth] = useState(false);
-
-  // Check authentication status on app load
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   // Load transactions from API
   useEffect(() => {
-    if (!isAuthenticated) return;
-
     const loadTransactions = async () => {
       setLoading(true);
       try {
@@ -237,18 +175,7 @@ function App() {
     };
 
     loadTransactions();
-  }, [isAuthenticated]);
-
-  const handleAuthSuccess = (userData) => {
-    setIsAuthenticated(true);
-    setUser(userData);
-    setShowPhoneAuth(false);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
-  };
+  }, []);
 
   const handleAddTransaction = async (newTx) => {
     try {
@@ -259,58 +186,18 @@ function App() {
     }
   };
 
-  if (!isAuthenticated && !showPhoneAuth) {
-    return (
-      <div className="min-h-screen relative classy-container">
-        <AnimatedBackground />
-        <div className="relative z-10 flex flex-col justify-center items-center min-h-screen p-4">
-          <motion.div 
-            className="text-center mb-8 animate-elegant-entrance"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent mb-4">
-              AI Budget Tracker
-            </h1>
-            <p className="text-xl text-gray-300 mb-8">
-              Smart expense tracking with AI voice assistant and intelligent categorization
-            </p>
-          </motion.div>
-          
-          <motion.button
-            onClick={() => setShowPhoneAuth(true)}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 text-lg font-semibold classy-button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Sign In with Phone
-          </motion.button>
-        </div>
-      </div>
-    );
-  }
-
-  if (showPhoneAuth) {
-    return <PhoneAuth onAuthSuccess={handleAuthSuccess} />;
-  }
-
   return (
     <div className="min-h-screen relative classy-container">
       <AnimatedBackground />
       
       <div className="relative z-10">
-        <Navbar 
-          isAuthenticated={isAuthenticated} 
-          user={user}
-          onLogout={handleLogout}
-        />
+        <Navbar />
 
         <main className="max-w-7xl mx-auto p-6">
           {/* Welcome Section */}
           <div className="text-center py-8 animate-elegant-entrance">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent mb-4">
-              Welcome, {user?.name || user?.phoneNumber || 'User'}!
+              Welcome to AI Budget Tracker!
             </h1>
             <p className="text-gray-300 text-lg max-w-2xl mx-auto">
               Smart expense tracking with AI voice assistant and intelligent categorization
