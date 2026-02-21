@@ -9,7 +9,7 @@ import PredictionCard from '../components/PredictionCard';
 import VoiceAssistant from '../components/VoiceAssistant';
 import AIChatAssistant from '../components/AIChatAssistant';
 import { getTransactions } from '../utils/api';
-import { Clock, Receipt, IndianRupee } from 'lucide-react';
+import { Clock, Receipt } from 'lucide-react';
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
@@ -79,13 +79,9 @@ export default function Dashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <IndianRupee className="h-8 w-8 text-green-400" />
-              <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
-                AI Powered Budget Tracker
-              </h1>
-              <IndianRupee className="h-8 w-8 text-green-400" />
-            </div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
+              AI Powered Budget Tracker
+            </h1>
             <p className="text-gray-300 max-w-2xl mx-auto">
               Smart expense tracking with AI voice assistant and intelligent categorization
             </p>
