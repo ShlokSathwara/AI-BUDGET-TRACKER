@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, DollarSign, Store, FileText, Tag } from 'lucide-react';
+import { Plus, IndianRupee, Store, FileText, Tag } from 'lucide-react';
 import api from '../utils/api';
 
-export default function AddTransaction({ onAdd }) {
+export default function AddTransaction({ onAdd, currency = 'USD', currencySymbol = '$' }) {
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
@@ -21,7 +21,15 @@ export default function AddTransaction({ onAdd }) {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const resp = await api.post('/transactions/smart-add', { text, type: 'debit' }, { headers });
       const saved = resp.data;
-      onAdd && onAdd(saved);
+      
+      // Add currency information
+      const transactionWithCurrency = {
+        ...saved,
+        currency: currency,
+        amount: currency === 'INR' ? parseFloat(amount) : saved.amount
+      };
+      
+      onAdd && onAdd(transactionWithCurrency);
       setAmount(''); setMerchant(''); setDescription(''); setCategory('');
     } catch (err) {
       console.error(err);
@@ -33,20 +41,20 @@ export default function AddTransaction({ onAdd }) {
   const inputFields = [
     {
       id: 'amount',
-      label: 'Amount',
+      label: `Amount (${currency})`,
       value: amount,
       onChange: setAmount,
-      placeholder: '0.00',
-      icon: DollarSign,
+      placeholder: `0.00 ${currencySymbol}`,
+      icon: currency === 'INR' ? IndianRupee : IndianRupee,
       type: 'number',
       required: true
     },
     {
       id: 'merchant',
-      label: 'Merchant',
+      label: 'Merchant/Place',
       value: merchant,
       onChange: setMerchant,
-      placeholder: 'Where did you spend?',
+      placeholder: 'Where did you spend? (e.g., BigBasket, Ola, Swiggy)',
       icon: Store
     },
     {
@@ -62,7 +70,7 @@ export default function AddTransaction({ onAdd }) {
       label: 'Category',
       value: category,
       onChange: setCategory,
-      placeholder: 'Food, Transport, etc.',
+      placeholder: 'Food, Transport, Shopping, etc.',
       icon: Tag
     }
   ];
@@ -76,8 +84,11 @@ export default function AddTransaction({ onAdd }) {
     >
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-white">Add New Transaction</h2>
-        <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
-          <Plus className="h-5 w-5 text-white" />
+        <div className="flex items-center space-x-2">
+          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+            <Plus className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-sm text-gray-400">{currency}</span>
         </div>
       </div>
 
@@ -106,6 +117,15 @@ export default function AddTransaction({ onAdd }) {
             </motion.div>
           ))}
         </div>
+
+        {/* Indian-specific help text */}
+        {currency === 'INR' && (
+          <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <p className="text-green-300 text-sm">
+              💡 Tip: Try saying "Spent ₹250 on Swiggy" or "Paid ₹50 for Ola ride" using voice commands!
+            </p>
+          </div>
+        )}
 
         <motion.button
           type="submit"

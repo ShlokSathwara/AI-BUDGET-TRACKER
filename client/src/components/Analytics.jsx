@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { TrendingUp, BarChart3 } from 'lucide-react';
+import { TrendingUp, BarChart3, IndianRupee } from 'lucide-react';
 
 const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
 
-export default function Analytics({ transactions = [] }) {
+export default function Analytics({ transactions = [], currency = 'USD', currencySymbol = '$' }) {
   // Group by category
   const byCategory = transactions.reduce((acc, t) => {
     const key = t.subcategory || t.category || 'Uncategorized';
@@ -45,6 +45,19 @@ export default function Analytics({ transactions = [] }) {
     );
   }
 
+  // Custom tooltip for currency
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-black/80 border border-white/10 rounded-lg p-3">
+          <p className="text-white font-semibold">{label}</p>
+          <p className="text-blue-300">{currencySymbol}{payload[0].value.toFixed(2)}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Pie Chart */}
@@ -59,6 +72,7 @@ export default function Analytics({ transactions = [] }) {
             <TrendingUp className="h-5 w-5 text-blue-400" />
             <span>Spending by Category</span>
           </h3>
+          {currency === 'INR' && <IndianRupee className="h-4 w-4 text-green-400" />}
         </div>
         
         <div className="h-64">
@@ -73,19 +87,13 @@ export default function Analytics({ transactions = [] }) {
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
               >
                 {pieData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  color: 'white'
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -103,6 +111,7 @@ export default function Analytics({ transactions = [] }) {
             <BarChart3 className="h-5 w-5 text-green-400" />
             <span>Top Categories</span>
           </h3>
+          {currency === 'INR' && <IndianRupee className="h-4 w-4 text-green-400" />}
         </div>
         
         <div className="h-64">
@@ -117,15 +126,9 @@ export default function Analytics({ transactions = [] }) {
               <YAxis 
                 stroke="#94a3b8" 
                 fontSize={12}
+                tickFormatter={(value) => `${currencySymbol}${value}`}
               />
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '8px',
-                  color: 'white'
-                }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Bar 
                 dataKey="amount" 
                 fill="url(#colorGradient)" 

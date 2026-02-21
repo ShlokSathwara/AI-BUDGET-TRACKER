@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Brain, TrendingUp, Calendar } from 'lucide-react';
+import { Brain, TrendingUp, Calendar, IndianRupee } from 'lucide-react';
 
-export default function PredictionCard({ transactions = [] }) {
+export default function PredictionCard({ transactions = [], currency = 'USD', currencySymbol = '$' }) {
   // Simple forecast: monthly average spending
   if (!transactions.length) {
     return (
@@ -40,13 +40,17 @@ export default function PredictionCard({ transactions = [] }) {
           </div>
           <h3 className="text-lg font-semibold text-white">AI Forecast</h3>
         </div>
-        <TrendingUp className="h-5 w-5 text-green-400" />
+        {currency === 'INR' ? (
+          <IndianRupee className="h-5 w-5 text-green-400" />
+        ) : (
+          <TrendingUp className="h-5 w-5 text-green-400" />
+        )}
       </div>
 
       <div className="space-y-4">
         <div className="text-center">
           <div className="text-3xl font-bold text-green-300 mb-1">
-            ${forecast.toFixed(2)}
+            {currencySymbol}{forecast.toFixed(2)}
           </div>
           <p className="text-sm text-gray-400">Estimated next month</p>
         </div>
@@ -54,7 +58,7 @@ export default function PredictionCard({ transactions = [] }) {
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
           <div className="text-center">
             <div className="text-xl font-semibold text-blue-300">
-              ${totalSpent.toFixed(2)}
+              {currencySymbol}{totalSpent.toFixed(2)}
             </div>
             <p className="text-xs text-gray-400 mt-1">Total Spent</p>
           </div>

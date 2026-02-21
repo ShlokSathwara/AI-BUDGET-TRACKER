@@ -1,36 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, IndianRupee } from 'lucide-react';
 
-export default function SummaryCards({ transactions = [] }) {
+export default function SummaryCards({ transactions = [], currency = 'USD', currencySymbol = '$' }) {
   const total = transactions.reduce((s, t) => s + (t.amount || 0), 0);
   const spending = transactions.filter(t => t.type !== 'credit').reduce((s, t) => s + (t.amount || 0), 0);
   const income = transactions.filter(t => t.type === 'credit').reduce((s, t) => s + (t.amount || 0), 0);
 
   const cards = [
     {
-      title: 'Total Balance',
+      title: `Total Balance (${currency})`,
       value: total.toFixed(2),
       icon: Wallet,
       color: 'from-blue-500 to-indigo-600',
       textColor: 'text-blue-300',
-      prefix: '$'
+      prefix: currencySymbol
     },
     {
-      title: 'Total Spending',
+      title: `Total Spending (${currency})`,
       value: spending.toFixed(2),
       icon: TrendingDown,
       color: 'from-red-500 to-pink-600',
       textColor: 'text-red-300',
-      prefix: '$'
+      prefix: currencySymbol
     },
     {
-      title: 'Total Income',
+      title: `Total Income (${currency})`,
       value: income.toFixed(2),
       icon: TrendingUp,
       color: 'from-green-500 to-emerald-600',
       textColor: 'text-green-300',
-      prefix: '$'
+      prefix: currencySymbol
     }
   ];
 
@@ -53,7 +53,11 @@ export default function SummaryCards({ transactions = [] }) {
               </p>
             </div>
             <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color}`}>
-              <card.icon className="h-6 w-6 text-white" />
+              {currency === 'INR' ? (
+                <IndianRupee className="h-6 w-6 text-white" />
+              ) : (
+                <card.icon className="h-6 w-6 text-white" />
+              )}
             </div>
           </div>
           
