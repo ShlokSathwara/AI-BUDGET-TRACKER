@@ -1,29 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Sparkles, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Sparkles, Volume2, Send } from 'lucide-react';
 
 const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) => {
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [conversationHistory, setConversationHistory] = useState([]);
   const recognitionRef = useRef(null);
 
-  // Indian Rupee categories and merchants
+  // Enhanced Indian Rupee categories and merchants with more comprehensive lists
   const indianCategories = {
-    food: ['food', 'lunch', 'dinner', 'breakfast', 'snacks', 'restaurant', 'cafe', 'swiggy', 'zomato', 'dominos', 'mcdonalds', 'starbucks'],
-    transport: ['ola', 'uber', 'auto', 'taxi', 'bus', 'train', 'metro', 'petrol', 'diesel', 'fuel'],
-    shopping: ['amazon', 'flipkart', 'myntra', 'ajio', 'big bazaar', 'd mart', 'reliance', 'clothes', 'shopping'],
-    entertainment: ['movie', 'netflix', 'hotstar', 'disney', 'spotify', 'concert', 'theatre'],
-    utilities: ['electricity', 'water', 'internet', 'phone', 'jio', 'airtel', 'vodafone'],
-    healthcare: ['doctor', 'medicine', 'hospital', 'pharmacy', 'apollo', 'fortis'],
-    education: ['school', 'college', 'books', 'course', 'tuition', 'byju'],
-    groceries: ['bigbasket', 'grofers', 'milk', 'vegetables', 'fruits', 'grocery']
+    food: ['food', 'lunch', 'dinner', 'breakfast', 'snacks', 'restaurant', 'cafe', 'swiggy', 'zomato', 'dominos', 'mcdonalds', 'starbucks', 'pizza', 'burger', 'chinese', 'indian', 'biryani', 'sweets', 'ice cream', 'tea', 'coffee', 'junk food'],
+    transport: ['ola', 'uber', 'auto', 'taxi', 'bus', 'train', 'metro', 'petrol', 'diesel', 'fuel', 'gas', 'cab', 'rickshaw', 'flight', 'ticket', 'travel', 'commute'],
+    shopping: ['amazon', 'flipkart', 'myntra', 'ajio', 'big bazaar', 'd mart', 'reliance', 'clothes', 'shopping', 'clothing', 'fashion', 'retail', 'store', 'market', 'grocery', 'department', 'electronics', 'mobile', 'laptop', 'furniture'],
+    entertainment: ['movie', 'netflix', 'hotstar', 'disney', 'spotify', 'concert', 'theatre', 'games', 'gaming', 'music', 'bookmyshow', 'cinema', 'streaming', 'subscription', 'party', 'event', 'drama'],
+    utilities: ['electricity', 'water', 'internet', 'phone', 'jio', 'airtel', 'vodafone', 'bill', 'recharge', 'subscription', 'rent', 'emi', 'loan', 'insurance', 'maintenance'],
+    healthcare: ['doctor', 'medicine', 'hospital', 'pharmacy', 'apollo', 'fortis', 'clinic', 'consultation', 'medical', 'health', 'checkup', 'diagnostic', 'dental', 'eye care'],
+    education: ['school', 'college', 'books', 'course', 'tuition', 'byju', 'unacademy', 'education', 'learning', 'training', 'certificate', 'exam', 'fees', 'stationery'],
+    groceries: ['bigbasket', 'grofers', 'milk', 'vegetables', 'fruits', 'grocery', 'supermarket', 'local', 'produce', 'organic', 'vegetable', 'fruit', 'dairy'],
+    investment: ['stocks', 'mutual fund', 'sip', 'mf', 'equity', 'gold', 'silver', 'crypto', 'bitcoin', 'investment', 'portfolio', 'trading', 'brokerage'],
+    personal: ['salon', 'barber', 'spa', 'beauty', 'cosmetics', 'perfume', 'gift', 'flowers', 'personal', 'care', 'hygiene']
   };
 
   const indianMerchants = [
     'Swiggy', 'Zomato', 'Ola', 'Uber', 'Amazon India', 'Flipkart', 'BigBasket',
     'DMart', 'Reliance Fresh', 'McDonalds India', 'Starbucks India', 'Dominos Pizza',
-    'Airtel', 'Jio', 'Vodafone', 'Apollo Hospitals', 'Fortis Hospitals'
+    'Airtel', 'Jio', 'Vodafone', 'Apollo Hospitals', 'Fortis Hospitals', 'BookMyShow',
+    'Netflix India', 'Hotstar', 'Spotify India', 'Byju\'s', 'Unacademy', 'Myntra',
+    'Ajio', 'Big Bazaar', 'Reliance Digital', 'Croma', 'Vijay Sales', 'Medlife',
+    'Pharmeasy', '1mg', 'Nykaa', 'Lenskart', 'BlueStone', 'CaratLane'
   ];
 
   useEffect(() => {
@@ -69,62 +75,176 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
     };
   }, [isListening]);
 
-  const processVoiceCommand = (text) => {
-    setIsProcessing(true);
+  const extractAmount = (text) => {
+    // Look for various rupee amount patterns
+    const patterns = [
+      /(?:rs|rupees|₹)\s*(\d+(?:\.\d+)?)/i,
+      /(\d+(?:\.\d+)?)\s*(?:rs|rupees|₹)/i,
+      /paid\s+(\d+(?:\.\d+)?)/i,
+      /spent\s+(\d+(?:\.\d+)?)/i,
+      /cost\s+(\d+(?:\.\d+)?)/i,
+      /buy\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
+      /purchase\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
+      /invest\s+(\d+(?:\.\d+)?)/i
+    ];
     
-    // Extract amount (looking for rupee amounts)
-    const amountRegex = /(?:rs|rupees|₹)\s*(\d+(?:\.\d+)?)/i;
-    const amountMatch = text.match(amountRegex);
-    const amount = amountMatch ? parseFloat(amountMatch[1]) : null;
+    for (const pattern of patterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const amount = parseFloat(match[1]);
+        if (!isNaN(amount) && amount > 0) {
+          return amount;
+        }
+      }
+    }
+    
+    // Try to find standalone numbers that could be amounts
+    const numbers = text.match(/\b\d{2,}\b/g);
+    if (numbers) {
+      for (const num of numbers) {
+        const amount = parseFloat(num);
+        if (amount >= 10 && amount <= 100000) { // Reasonable expense range
+          return amount;
+        }
+      }
+    }
+    
+    return null;
+  };
 
-    // Extract merchant/business name
-    let merchant = '';
-    const words = text.toLowerCase().split(' ');
+  const extractMerchant = (text) => {
+    const lowerText = text.toLowerCase();
     
     // Check for known Indian merchants
     for (const indianMerchant of indianMerchants) {
-      if (text.toLowerCase().includes(indianMerchant.toLowerCase().split(' ')[0])) {
-        merchant = indianMerchant;
-        break;
+      if (lowerText.includes(indianMerchant.toLowerCase().split(' ')[0])) {
+        return indianMerchant;
       }
     }
-
-    // If no specific merchant found, use the first few words as description
-    if (!merchant) {
-      merchant = words.slice(0, 3).join(' ').replace(/[^a-zA-Z\s]/g, '');
+    
+    // Extract potential merchant from context
+    const merchantPatterns = [
+      /(?:at|from)\s+([A-Za-z\s]+)/i,
+      /paid\s+([A-Za-z\s]+)\s+for/i,
+      /bought\s+.*\s+from\s+([A-Za-z\s]+)/i,
+      /ordered\s+.*\s+from\s+([A-Za-z\s]+)/i
+    ];
+    
+    for (const pattern of merchantPatterns) {
+      const match = text.match(pattern);
+      if (match && match[1]) {
+        const extracted = match[1].trim();
+        if (extracted.length >= 2 && extracted.length <= 30) {
+          return extracted.charAt(0).toUpperCase() + extracted.slice(1).toLowerCase();
+        }
+      }
     }
+    
+    // Extract capitalized words that could be merchants
+    const capitalizedWords = text.match(/[A-Z][a-z]{2,}/g);
+    if (capitalizedWords) {
+      for (const word of capitalizedWords) {
+        if (word.length >= 3 && word.length <= 20) {
+          return word;
+        }
+      }
+    }
+    
+    // Return first few words as fallback
+    const words = text.split(' ');
+    return words.slice(0, 3).join(' ').replace(/[^a-zA-Z\s]/g, '');
+  };
 
-    // Determine category based on keywords
-    let category = 'Other';
+  const extractCategory = (text) => {
     const textLower = text.toLowerCase();
     
     for (const [cat, keywords] of Object.entries(indianCategories)) {
       if (keywords.some(keyword => textLower.includes(keyword))) {
-        category = cat.charAt(0).toUpperCase() + cat.slice(1);
-        break;
+        return cat.charAt(0).toUpperCase() + cat.slice(1);
       }
     }
+    
+    // Context-based category detection
+    if (textLower.includes('salary') || textLower.includes('income') || textLower.includes('refund')) {
+      return 'Income';
+    }
+    
+    if (textLower.includes('investment') || textLower.includes('stocks') || textLower.includes('mutual') || textLower.includes('fund')) {
+      return 'Investment';
+    }
+    
+    // Default to Other if no category found
+    return 'Other';
+  };
 
+  const processVoiceCommand = (text) => {
+    setIsProcessing(true);
+    
+    // Clean up the text
+    const cleanText = text.trim();
+    if (!cleanText) {
+      setIsProcessing(false);
+      return;
+    }
+    
+    // Extract amount, merchant, and category
+    const amount = extractAmount(cleanText);
+    const merchant = extractMerchant(cleanText);
+    const category = extractCategory(cleanText);
+    
+    // Determine transaction type based on context
+    let type = 'debit';
+    if (cleanText.toLowerCase().includes('received') || 
+        cleanText.toLowerCase().includes('got') || 
+        cleanText.toLowerCase().includes('income') ||
+        cleanText.toLowerCase().includes('salary') ||
+        cleanText.toLowerCase().includes('refund') ||
+        cleanText.toLowerCase().includes('payment received')) {
+      type = 'credit';
+    }
+    
     // Create transaction object
     if (amount) {
       const transaction = {
         amount: amount,
         merchant: merchant,
-        description: text,
+        description: cleanText,
         category: category,
-        type: 'debit',
+        type: type,
         currency: 'INR'
       };
+
+      // Add to conversation history
+      setConversationHistory(prev => [...prev, {
+        type: 'user',
+        content: cleanText,
+        timestamp: new Date()
+      }]);
 
       setTimeout(() => {
         onTransactionDetected(transaction);
         setIsProcessing(false);
         setTranscript('');
+        
+        // Add confirmation to conversation history
+        setConversationHistory(prev => [...prev, {
+          type: 'assistant',
+          content: `Added ${type === 'credit' ? 'income' : 'expense'}: ₹${amount} for ${category}`,
+          timestamp: new Date()
+        }]);
       }, 1000);
     } else {
+      // Try to understand if it's a general query or instruction
+      if (cleanText.toLowerCase().includes('help') || 
+          cleanText.toLowerCase().includes('what can you do') ||
+          cleanText.toLowerCase().includes('how to use')) {
+        setError('I can help you track expenses by voice! Just say things like "Spent ₹250 on Swiggy" or "Got ₹5000 salary"');
+      } else {
+        setError('Could not detect amount in your voice command. Try saying "Spent ₹250 on groceries"');
+      }
+      
       setIsProcessing(false);
-      setError('Could not detect amount in your voice command');
-      setTimeout(() => setError(''), 3000);
+      setTimeout(() => setError(''), 5000);
     }
   };
 
@@ -166,6 +286,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
                 <p className="text-sm text-gray-300 mb-1">Try saying:</p>
                 <p className="text-white text-sm">"Spent ₹250 on Swiggy for dinner"</p>
                 <p className="text-white text-sm">"Paid ₹50 for Ola ride to office"</p>
+                <p className="text-white text-sm">"Got ₹5000 salary this month"</p>
               </div>
               
               {transcript && (
