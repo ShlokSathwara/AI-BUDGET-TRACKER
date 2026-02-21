@@ -82,12 +82,12 @@ export default function Dashboard() {
             <div className="flex items-center justify-center space-x-2 mb-2">
               <IndianRupee className="h-8 w-8 text-green-400" />
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
-                AI Budget Tracker India
+                AI Powered Budget Tracker
               </h1>
               <IndianRupee className="h-8 w-8 text-green-400" />
             </div>
             <p className="text-gray-300 max-w-2xl mx-auto">
-              Smart expense tracking with AI voice assistant, Indian Rupees, and intelligent categorization
+              Smart expense tracking with AI voice assistant and intelligent categorization
             </p>
             <div className="flex items-center justify-center space-x-4 mt-4 text-sm text-gray-400">
               <span className="flex items-center space-x-1">
@@ -96,11 +96,11 @@ export default function Dashboard() {
               </span>
               <span className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span>₹ Rupees</span>
+                <span>Voice Control</span>
               </span>
               <span className="flex items-center space-x-1">
                 <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <span>Voice Control</span>
+                <span>Smart Analytics</span>
               </span>
             </div>
           </motion.div>
