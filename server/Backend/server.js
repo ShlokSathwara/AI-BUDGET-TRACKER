@@ -2,6 +2,11 @@ const app = require('./routes');
 const config = require('./config');
 const db = require('./utils/db');
 
+// Import models to ensure they're registered with Mongoose
+require('./models/User');
+require('./models/PhoneUser');
+require('./models/OTP');
+
 async function start() {
   try {
     await db.connect();

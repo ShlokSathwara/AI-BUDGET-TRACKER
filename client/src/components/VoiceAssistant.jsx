@@ -148,7 +148,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="mb-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl max-w-sm"
+            className="mb-4 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl max-w-sm classy-element"
           >
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-white font-semibold flex items-center space-x-2">
@@ -194,7 +194,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
 
       <motion.button
         onClick={toggleListening}
-        className={`p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center ${
+        className={`p-4 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center classy-button ${
           isListening 
             ? 'bg-red-500 hover:bg-red-600 animate-pulse-glow' 
             : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500'

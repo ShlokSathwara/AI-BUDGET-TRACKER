@@ -1,14 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { TrendingUp, BarChart3, IndianRupee } from 'lucide-react';
+import { TrendingUp, BarChart3 } from 'lucide-react';
 
-const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
-
-export default function Analytics({ transactions = [], currency = 'USD', currencySymbol = '$' }) {
+const Analytics = ({ transactions = [] }) => {
   // Group by category
   const byCategory = transactions.reduce((acc, t) => {
-    const key = t.subcategory || t.category || 'Uncategorized';
+    const key = t.category || 'Uncategorized';
     acc[key] = (acc[key] || 0) + (t.amount || 0);
     return acc;
   }, {});
@@ -17,7 +15,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
     .map((k, i) => ({ 
       name: k, 
       value: byCategory[k], 
-      color: COLORS[i % COLORS.length] 
+      color: ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'][i % 8] 
     }))
     .filter(item => item.value > 0);
 
@@ -33,7 +31,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
   if (pieData.length === 0) {
     return (
       <motion.div 
-        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl text-center"
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl text-center classy-element"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -51,7 +49,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
       return (
         <div className="bg-black/80 border border-white/10 rounded-lg p-3">
           <p className="text-white font-semibold">{label}</p>
-          <p className="text-blue-300">{currencySymbol}{payload[0].value.toFixed(2)}</p>
+          <p className="text-blue-300">₹{payload[0].value.toFixed(2)}</p>
         </div>
       );
     }
@@ -62,7 +60,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Pie Chart */}
       <motion.div
-        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
@@ -72,7 +70,6 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
             <TrendingUp className="h-5 w-5 text-blue-400" />
             <span>Spending by Category</span>
           </h3>
-          {currency === 'INR' && <IndianRupee className="h-4 w-4 text-green-400" />}
         </div>
         
         <div className="h-64">
@@ -101,7 +98,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
 
       {/* Bar Chart */}
       <motion.div
-        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
         initial={{ opacity: 0, x: 30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -111,7 +108,6 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
             <BarChart3 className="h-5 w-5 text-green-400" />
             <span>Top Categories</span>
           </h3>
-          {currency === 'INR' && <IndianRupee className="h-4 w-4 text-green-400" />}
         </div>
         
         <div className="h-64">
@@ -126,7 +122,7 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
               <YAxis 
                 stroke="#94a3b8" 
                 fontSize={12}
-                tickFormatter={(value) => `${currencySymbol}${value}`}
+                tickFormatter={(value) => `₹${value}`}
               />
               <Tooltip content={<CustomTooltip />} />
               <Bar 
@@ -146,4 +142,6 @@ export default function Analytics({ transactions = [], currency = 'USD', currenc
       </motion.div>
     </div>
   );
-}
+};
+
+export default Analytics;

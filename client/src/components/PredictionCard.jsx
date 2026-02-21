@@ -2,12 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Brain, TrendingUp, Calendar, IndianRupee } from 'lucide-react';
 
-export default function PredictionCard({ transactions = [], currency = 'USD', currencySymbol = '$' }) {
+const PredictionCard = ({ transactions = [] }) => {
   // Simple forecast: monthly average spending
   if (!transactions.length) {
     return (
       <motion.div 
-        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl text-center"
+        className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl text-center classy-element"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -27,7 +27,7 @@ export default function PredictionCard({ transactions = [], currency = 'USD', cu
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.3 }}
@@ -35,22 +35,18 @@ export default function PredictionCard({ transactions = [], currency = 'USD', cu
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg animate-classy-pulse">
             <Brain className="h-5 w-5 text-white" />
           </div>
           <h3 className="text-lg font-semibold text-white">AI Forecast</h3>
         </div>
-        {currency === 'INR' ? (
-          <IndianRupee className="h-5 w-5 text-green-400" />
-        ) : (
-          <TrendingUp className="h-5 w-5 text-green-400" />
-        )}
+        <TrendingUp className="h-5 w-5 text-green-400" />
       </div>
 
       <div className="space-y-4">
         <div className="text-center">
           <div className="text-3xl font-bold text-green-300 mb-1">
-            {currencySymbol}{forecast.toFixed(2)}
+            ₹{forecast.toFixed(2)}
           </div>
           <p className="text-sm text-gray-400">Estimated next month</p>
         </div>
@@ -58,7 +54,7 @@ export default function PredictionCard({ transactions = [], currency = 'USD', cu
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
           <div className="text-center">
             <div className="text-xl font-semibold text-blue-300">
-              {currencySymbol}{totalSpent.toFixed(2)}
+              ₹{totalSpent.toFixed(2)}
             </div>
             <p className="text-xs text-gray-400 mt-1">Total Spent</p>
           </div>
@@ -77,4 +73,6 @@ export default function PredictionCard({ transactions = [], currency = 'USD', cu
       </div>
     </motion.div>
   );
-}
+};
+
+export default PredictionCard;

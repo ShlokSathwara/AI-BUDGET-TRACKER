@@ -154,7 +154,7 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
         {!isVisible && (
           <motion.button
             onClick={() => setIsVisible(true)}
-            className="fixed bottom-6 left-6 z-40 p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl hover:from-purple-500 hover:to-pink-500 transition-all duration-300"
+            className="fixed bottom-6 left-6 z-40 p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl hover:from-purple-500 hover:to-pink-500 transition-all duration-300 classy-button"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             initial={{ opacity: 0, y: 20 }}
@@ -169,7 +169,7 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            className="fixed bottom-6 left-6 z-50 w-80 h-96 bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col"
+            className="fixed bottom-6 left-6 z-50 w-80 h-96 bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col classy-element"
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -177,7 +177,7 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <div className="flex items-center space-x-2">
-                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg">
+                <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg animate-classy-pulse">
                   <Bot className="h-4 w-4 text-white" />
                 </div>
                 <h3 className="text-white font-semibold">AI Assistant</h3>
@@ -252,7 +252,7 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
                   <button
                     key={index}
                     onClick={() => setInputValue(command)}
-                    className="text-xs bg-white/10 hover:bg-white/20 text-gray-300 px-2 py-1 rounded-lg transition-colors"
+                    className="text-xs bg-white/10 hover:bg-white/20 text-gray-300 px-2 py-1 rounded-lg transition-colors classy-button"
                   >
                     {command}
                   </button>
@@ -269,12 +269,12 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your expense..."
-                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 classy-element"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isTyping}
-                  className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 transition-all duration-300"
+                  className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 transition-all duration-300 classy-button"
                 >
                   <Send className="h-4 w-4 text-white" />
                 </button>
