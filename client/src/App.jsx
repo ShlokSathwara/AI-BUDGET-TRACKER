@@ -1,26 +1,13 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import React from 'react';
+import Dashboard from './pages/Dashboard';
 
-/* Global base styles */
-@layer base {
-  html, body, #root {
-    height: 100%;
-  }
-  body {
-    @apply bg-gray-900 text-white antialiased;
-  }
+function App() {
+  return (
+    <div className="app-container">
+      <Dashboard />
+    </div>
+  );
 }
 
-/* Glassmorphism utility */
-.glass {
-  @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-
-/* Simple container */
-.app-container {
-  @apply min-h-screen flex items-center justify-center p-6;
-}
+export default App;
 
