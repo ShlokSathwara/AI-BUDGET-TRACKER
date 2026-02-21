@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Wallet, User } from 'lucide-react';
+import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import AddTransaction from './components/AddTransaction';
 import Analytics from './components/Analytics';
@@ -8,6 +8,8 @@ import PredictionCard from './components/PredictionCard';
 import VoiceAssistant from './components/VoiceAssistant';
 import AIChatAssistant from './components/AIChatAssistant';
 import SavingPlanner from './components/SavingPlanner';
+import Reports from './components/Reports';
+import SettingsComponent from './components/Settings';
 import { getTransactions } from './utils/api';
 
 // Animated Background Component
@@ -50,14 +52,14 @@ const AnimatedBackground = () => {
 };
 
 // Mobile-Friendly Navbar Component
-const Navbar = () => {
+const Navbar = ({ activeTab, setActiveTab }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Dashboard', href: '#' },
-    { name: 'Analytics', href: '#' },
-    { name: 'Reports', href: '#' },
-    { name: 'Settings', href: '#' },
+    { name: 'Dashboard', icon: Home, key: 'dashboard' },
+    { name: 'Analytics', icon: BarChart3, key: 'analytics' },
+    { name: 'Reports', icon: FileText, key: 'reports' },
+    { name: 'Settings', icon: Settings, key: 'settings' },
   ];
 
   return (
@@ -83,18 +85,27 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1">
-          {navItems.map((item, index) => (
-            <motion.button
-              key={item.name}
-              className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 classy-button"
-              whileHover={{ y: -2 }}
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              {item.name}
-            </motion.button>
-          ))}
+          {navItems.map((item, index) => {
+            const IconComponent = item.icon;
+            return (
+              <motion.button
+                key={item.name}
+                className={`px-4 py-2 rounded-lg transition-all duration-300 classy-button flex items-center space-x-2 ${
+                  activeTab === item.key 
+                    ? 'bg-white/20 text-white' 
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                }`}
+                whileHover={{ y: -2 }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                onClick={() => setActiveTab(item.key)}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span>{item.name}</span>
+              </motion.button>
+            );
+          })}
           <motion.button 
             className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 classy-button"
             whileHover={{ scale: 1.05 }}
@@ -124,16 +135,27 @@ const Navbar = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col space-y-2">
-              {navItems.map((item) => (
-                <motion.button
-                  key={item.name}
-                  className="px-4 py-3 text-left text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 classy-button"
-                  onClick={() => setIsMenuOpen(false)}
-                  whileHover={{ x: 5 }}
-                >
-                  {item.name}
-                </motion.button>
-              ))}
+              {navItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <motion.button
+                    key={item.name}
+                    className={`px-4 py-3 text-left flex items-center space-x-2 rounded-lg transition-all duration-300 classy-button ${
+                      activeTab === item.key 
+                        ? 'bg-white/20 text-white' 
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    onClick={() => {
+                      setActiveTab(item.key);
+                      setIsMenuOpen(false);
+                    }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </motion.button>
+                );
+              })}
               <motion.button 
                 className="mt-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg classy-button"
                 whileHover={{ scale: 1.02 }}
@@ -154,6 +176,7 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Load transactions from API
   useEffect(() => {
@@ -166,9 +189,9 @@ function App() {
         console.error('Error loading transactions:', err);
         // Use mock data as fallback
         setTransactions([
-          { _id: 1, amount: 250, merchant: 'Swiggy', category: 'Food', type: 'debit', currency: 'INR' },
-          { _id: 2, amount: 50, merchant: 'Ola', category: 'Transport', type: 'debit', currency: 'INR' },
-          { _id: 3, amount: 1000, merchant: 'Salary', category: 'Income', type: 'credit', currency: 'INR' }
+          { _id: 1, amount: 250, merchant: 'Swiggy', category: 'Food', type: 'debit', currency: 'INR', date: new Date() },
+          { _id: 2, amount: 50, merchant: 'Ola', category: 'Transport', type: 'debit', currency: 'INR', date: new Date() },
+          { _id: 3, amount: 1000, merchant: 'Salary', category: 'Income', type: 'credit', currency: 'INR', date: new Date() }
         ]);
       } finally {
         setLoading(false);
@@ -187,75 +210,93 @@ function App() {
     }
   };
 
+  const renderActiveTab = () => {
+    switch(activeTab) {
+      case 'analytics':
+        return <Analytics transactions={transactions} />;
+      case 'reports':
+        return <Reports transactions={transactions} />;
+      case 'settings':
+        return <SettingsComponent />;
+      case 'dashboard':
+      default:
+        return (
+          <>
+            {/* Welcome Section */}
+            <div className="text-center py-8 animate-elegant-entrance">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent mb-4">
+                Welcome to AI Budget Tracker!
+              </h1>
+              <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+                Smart expense tracking with AI voice assistant and intelligent categorization
+              </p>
+            </div>
+
+            {/* Summary Cards */}
+            <SummaryCards transactions={transactions} />
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Add Transaction and Analytics */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Add Transaction Form */}
+                <AddTransaction 
+                  onAdd={handleAddTransaction} 
+                />
+
+                {/* Analytics Charts */}
+                <Analytics transactions={transactions} />
+              </div>
+
+              {/* Right Column - Saving Planner, Prediction Card and Recent Transactions */}
+              <div className="space-y-6">
+                {/* Saving Planner */}
+                <SavingPlanner transactions={transactions} />
+                
+                <PredictionCard transactions={transactions} />
+                
+                {/* Recent Transactions */}
+                <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 classy-element">
+                  <h2 className="text-2xl font-bold mb-4">Recent Transactions</h2>
+                  {loading ? (
+                    <div className="text-center py-8">
+                      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                      <p>Loading transactions...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {transactions.map((t) => (
+                        <div key={t._id} className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium">{t.merchant}</div>
+                              <div className="text-sm text-gray-400">{t.category}</div>
+                            </div>
+                            <div className={`font-semibold ${t.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
+                              {t.type === 'credit' ? '+' : '-'}₹{t.amount.toFixed(2)}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen relative classy-container">
       <AnimatedBackground />
       
       <div className="relative z-10">
-        <Navbar />
+        <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <main className="max-w-7xl mx-auto p-6">
-          {/* Welcome Section */}
-          <div className="text-center py-8 animate-elegant-entrance">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent mb-4">
-              Welcome to AI Budget Tracker!
-            </h1>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-              Smart expense tracking with AI voice assistant and intelligent categorization
-            </p>
-          </div>
-
-          {/* Summary Cards */}
-          <SummaryCards transactions={transactions} />
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Add Transaction and Analytics */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Add Transaction Form */}
-              <AddTransaction 
-                onAdd={handleAddTransaction} 
-              />
-
-              {/* Analytics Charts */}
-              <Analytics transactions={transactions} />
-            </div>
-
-            {/* Right Column - Saving Planner, Prediction Card and Recent Transactions */}
-            <div className="space-y-6">
-              {/* Saving Planner */}
-              <SavingPlanner transactions={transactions} />
-              
-              <PredictionCard transactions={transactions} />
-              
-              {/* Recent Transactions */}
-              <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 classy-element">
-                <h2 className="text-2xl font-bold mb-4">Recent Transactions</h2>
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p>Loading transactions...</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {transactions.map((t) => (
-                      <div key={t._id} className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <div className="font-medium">{t.merchant}</div>
-                            <div className="text-sm text-gray-400">{t.category}</div>
-                          </div>
-                          <div className={`font-semibold ${t.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
-                            {t.type === 'credit' ? '+' : '-'}₹{t.amount.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+          {renderActiveTab()}
 
           {/* Voice Assistant */}
           <VoiceAssistant 
