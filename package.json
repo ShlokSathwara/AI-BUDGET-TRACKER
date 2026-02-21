@@ -1,8 +1,14 @@
 {
-  "dependencies": {
-    "axios": "^1.13.5",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-scripts": "^0.0.0"
+  "name": "ai-budget-tracker",
+  "version": "1.0.0",
+  "description": "AI-powered budget tracker for Indian users with voice recognition and Rupee support",
+  "private": true,
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "start": "cd client && npm run preview"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
