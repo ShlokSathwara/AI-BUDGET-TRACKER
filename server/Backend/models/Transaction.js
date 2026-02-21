@@ -13,6 +13,8 @@ const TransactionSchema = new Schema(
     subcategory: { type: String, trim: true },
     confidence: { type: Number, default: 1 },
     date: { type: Date, default: Date.now, index: true },
+    bankAccountId: { type: String, trim: true },
+    paymentMethod: { type: String, trim: true },
     meta: { type: Schema.Types.Mixed } // store raw provider payload or extra fields
   },
   {

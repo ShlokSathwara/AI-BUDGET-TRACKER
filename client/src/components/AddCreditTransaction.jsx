@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, IndianRupee, Store, FileText, Tag, CreditCard, Wallet } from 'lucide-react';
 
-const AddTransaction = ({ onAdd, accounts = [] }) => {
+const AddCreditTransaction = ({ onAdd, accounts = [] }) => {
   const [amount, setAmount] = useState('');
   const [merchant, setMerchant] = useState('');
   const [description, setDescription] = useState('');
@@ -20,7 +20,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
     }
     
     if (!merchant.trim()) {
-      newErrors.merchant = 'Merchant is required';
+      newErrors.merchant = 'Source is required';
     }
     
     if (!description.trim()) {
@@ -42,11 +42,11 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log('Form submission started');
+    console.log('Credit form submission started');
     console.log('Form values:', { amount, merchant, description, category, bankAccount, paymentMethod });
     
     if (!validateForm()) {
-      console.log('Form validation failed');
+      console.log('Credit form validation failed');
       return;
     }
     
@@ -61,25 +61,25 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
         amount: parseFloat(amount),
         merchant: merchant.trim(),
         description: description.trim(),
-        category: category.trim() || 'Other',
-        type: 'debit',
+        category: category.trim() || 'Income',
+        type: 'credit',
         currency: 'INR',
         date: new Date().toISOString(),
         bankAccountId: bankAccount || null,
         paymentMethod: paymentMethod
       };
       
-      console.log('Submitting transaction:', newTransaction);
+      console.log('Submitting credit transaction:', newTransaction);
       console.log('onAdd function:', onAdd);
       console.log('typeof onAdd:', typeof onAdd);
       
       // Call the parent handler
       if (onAdd && typeof onAdd === 'function') {
-        console.log('Calling onAdd function');
+        console.log('Calling onAdd function for credit');
         await onAdd(newTransaction);
-        console.log('onAdd function completed successfully');
+        console.log('onAdd function completed successfully for credit');
       } else {
-        console.error('onAdd is not a function:', onAdd);
+        console.error('onAdd is not a function for credit:', onAdd);
         throw new Error('Transaction handler not available');
       }
       
@@ -92,13 +92,13 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       setPaymentMethod('');
       setErrors({});
       
-      console.log('Transaction added successfully');
+      console.log('Credit transaction added successfully');
       
     } catch (err) {
-      console.error('Error adding transaction:', err);
+      console.error('Error adding credit transaction:', err);
       console.error('Error stack:', err.stack);
-      setErrors({ submit: err.message || 'Failed to add transaction. Please try again.' });
-      alert('Failed to add transaction: ' + (err.message || 'Please try again.'));
+      setErrors({ submit: err.message || 'Failed to add income transaction. Please try again.' });
+      alert('Failed to add income transaction: ' + (err.message || 'Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -127,10 +127,10 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
     },
     {
       id: 'merchant',
-      label: 'Merchant/Place',
+      label: 'Source/From',
       value: merchant,
       onChange: setMerchant,
-      placeholder: 'Where did you spend?',
+      placeholder: 'Where did you earn from?',
       icon: Store,
       error: errors.merchant
     },
@@ -139,7 +139,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       label: 'Description',
       value: description,
       onChange: setDescription,
-      placeholder: 'What did you buy?',
+      placeholder: 'What was the income for?',
       icon: FileText,
       error: errors.description
     },
@@ -148,7 +148,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       label: 'Category',
       value: category,
       onChange: setCategory,
-      placeholder: 'Food, Transport, Shopping, etc.',
+      placeholder: 'Salary, Freelance, Investment, etc.',
       icon: Tag
     },
     {
@@ -188,9 +188,9 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       transition={{ duration: 0.5 }}
     >
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-white">Add New Expense</h2>
+        <h2 className="text-xl font-bold text-white">Add Income</h2>
         <div className="flex items-center space-x-2">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
             <Plus className="h-5 w-5 text-white" />
           </div>
           <span className="text-sm text-gray-400">INR</span>
@@ -209,7 +209,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
                 <select
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
-                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 ${
                     field.error ? 'border-red-500' : 'border-white/20'
                   }`}
                 >
@@ -225,7 +225,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
                   placeholder={field.placeholder}
-                  className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                  className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-300 ${
                     field.error ? 'border-red-500' : 'border-white/10'
                   }`}
                 />
@@ -246,7 +246,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
 
         <motion.button
           type="submit"
-          className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
+          className="w-full py-3 px-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-500 hover:to-emerald-500 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
           disabled={loading}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -259,7 +259,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
           ) : (
             <>
               <Plus className="h-5 w-5" />
-              <span>Add Expense</span>
+              <span>Add Income</span>
             </>
           )}
         </motion.button>
@@ -268,4 +268,4 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
   );
 };
 
-export default AddTransaction;
+export default AddCreditTransaction;

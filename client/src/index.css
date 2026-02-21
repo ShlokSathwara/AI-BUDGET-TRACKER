@@ -8,9 +8,56 @@
     height: 100%;
     scroll-behavior: smooth;
   }
+  
+  /* Light mode - keep current styling */
   body {
     @apply bg-gradient-to-br from-blue-900 via-indigo-900 to-black text-white antialiased;
     background-attachment: fixed;
+  }
+  
+  /* Dark mode - much darker styling */
+  .dark body {
+    @apply bg-gradient-to-br from-black via-gray-900 to-gray-900 text-white antialiased;
+    background-attachment: fixed;
+  }
+  
+  /* Dark mode enhanced glass effects */
+  .dark .glass {
+    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-xl;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  
+  .dark .glass-card {
+    @apply bg-gradient-to-br from-black/60 to-gray-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  
+  /* Dark mode form elements */
+  .dark input, 
+  .dark textarea, 
+  .dark select {
+    @apply bg-black/30 border border-white/10 text-white placeholder-gray-500;
+  }
+  
+  .dark input:focus, 
+  .dark textarea:focus, 
+  .dark select:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-opacity-50 border-blue-400/50;
+  }
+  
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-track {
+    @apply bg-black/20 rounded-full;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-gray-700 to-gray-600 rounded-full;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    @apply from-gray-600 to-gray-500;
   }
 }
 

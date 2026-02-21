@@ -3,28 +3,7 @@ import { PiggyBank, Target, Calendar, TrendingUp, Clock, CheckCircle } from 'luc
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SavingPlanner = ({ transactions = [] }) => {
-  const [goals, setGoals] = useState([
-    {
-      id: 1,
-      name: 'Emergency Fund',
-      targetAmount: 50000,
-      currentAmount: 15000,
-      deadline: '2024-12-31',
-      priority: 'high',
-      category: 'savings',
-      status: 'in-progress'
-    },
-    {
-      id: 2,
-      name: 'Vacation Trip',
-      targetAmount: 30000,
-      currentAmount: 8000,
-      deadline: '2024-08-15',
-      priority: 'medium',
-      category: 'leisure',
-      status: 'in-progress'
-    }
-  ]);
+  const [goals, setGoals] = useState([]);
 
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [newGoal, setNewGoal] = useState({
@@ -80,24 +59,6 @@ const SavingPlanner = ({ transactions = [] }) => {
     }));
   };
 
-  // Auto-update progress based on recent transactions
-  useEffect(() => {
-    const incomeTransactions = transactions.filter(t => t.type === 'credit' && t.category === 'Income');
-    const totalIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
-
-    goals.forEach(goal => {
-      if (goal.status !== 'completed') {
-        const monthlySavings = calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline);
-        if (totalIncome > 0 && monthlySavings > 0) {
-          const progressAmount = Math.min(monthlySavings * 0.1, goal.targetAmount - goal.currentAmount); // 10% of monthly savings
-          if (progressAmount > 0) {
-            updateGoalProgress(goal.id, progressAmount);
-          }
-        }
-      }
-    });
-  }, [transactions]);
-
   const getClassyGradient = (priority) => {
     switch (priority) {
       case 'high':
@@ -140,71 +101,92 @@ const SavingPlanner = ({ transactions = [] }) => {
 
       <div className="space-y-4">
         <AnimatePresence>
-          {goals.map((goal) => (
+          {goals.length === 0 ? (
             <motion.div
-              key={goal.id}
-              className={`p-4 bg-gradient-to-r ${getClassyGradient(goal.priority)} rounded-xl border border-white/20`}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.4 }}
+              className="text-center py-12"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${
-                    goal.priority === 'high' ? 'bg-red-500/30' :
-                    goal.priority === 'medium' ? 'bg-blue-500/30' :
-                    'bg-green-500/30'
-                  }`}>
-                    <Target className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white">{goal.name}</h3>
-                    <p className="text-sm text-gray-300 capitalize">{goal.category}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-white">
-                    ₹{goal.currentAmount.toLocaleString()} / ₹{goal.targetAmount.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {calculateProgress(goal.currentAmount, goal.targetAmount).toFixed(1)}%
-                  </p>
-                </div>
-              </div>
-
-              <div className="mb-3">
-                <div className="w-full bg-black/20 rounded-full h-2">
-                  <motion.div
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${calculateProgress(goal.currentAmount, goal.targetAmount)}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1 text-gray-300">
-                    <Clock className="w-4 h-4" />
-                    <span>{new Date(goal.deadline).toLocaleDateString()}</span>
-                  </div>
-                  <div className="flex items-center space-x-1 text-gray-300">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>₹{calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline).toLocaleString()}/mo</span>
-                  </div>
-                </div>
-                <div className={`px-2 py-1 rounded-full text-xs ${
-                  goal.status === 'completed' 
-                    ? 'bg-green-500/30 text-green-300' 
-                    : 'bg-yellow-500/30 text-yellow-300'
-                }`}>
-                  {goal.status === 'completed' ? 'Completed' : 'In Progress'}
-                </div>
-              </div>
+              <PiggyBank className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No Saving Goals Yet</h3>
+              <p className="text-gray-400 mb-6">Create your first saving goal to start planning your financial future</p>
+              <motion.button
+                onClick={() => setShowAddGoal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Create Your First Goal
+              </motion.button>
             </motion.div>
-          ))}
+          ) : (
+            goals.map((goal) => (
+              <motion.div
+                key={goal.id}
+                className={`p-4 bg-gradient-to-r ${getClassyGradient(goal.priority)} rounded-xl border border-white/20`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-lg ${
+                      goal.priority === 'high' ? 'bg-red-500/30' :
+                      goal.priority === 'medium' ? 'bg-blue-500/30' :
+                      'bg-green-500/30'
+                    }`}>
+                      <Target className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{goal.name}</h3>
+                      <p className="text-sm text-gray-300 capitalize">{goal.category}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-white">
+                      ₹{goal.currentAmount.toLocaleString()} / ₹{goal.targetAmount.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {calculateProgress(goal.currentAmount, goal.targetAmount).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <div className="w-full bg-black/20 rounded-full h-2">
+                    <motion.div
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${calculateProgress(goal.currentAmount, goal.targetAmount)}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-1 text-gray-300">
+                      <Clock className="w-4 h-4" />
+                      <span>{new Date(goal.deadline).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center space-x-1 text-gray-300">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>₹{calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline).toLocaleString()}/mo</span>
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded-full text-xs ${
+                    goal.status === 'completed' 
+                      ? 'bg-green-500/30 text-green-300' 
+                      : 'bg-yellow-500/30 text-yellow-300'
+                  }`}>
+                    {goal.status === 'completed' ? 'Completed' : 'In Progress'}
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
         </AnimatePresence>
       </div>
 

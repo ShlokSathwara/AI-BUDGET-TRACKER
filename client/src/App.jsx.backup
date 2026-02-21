@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon, Calculator, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import AddTransaction from './components/AddTransaction';
 import AddCreditTransaction from './components/AddCreditTransaction';
-import AddCashTransaction from './components/AddCashTransaction';
 import Analytics from './components/Analytics';
 import BankAccountManager from './components/BankAccountManager';
 import BankAccountGraphs from './components/BankAccountGraphs';
@@ -16,14 +15,10 @@ import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
 import SimpleAuth from './components/SimpleAuth';
-import WhatIfSimulator from './components/WhatIfSimulator';
-import SmartOverspendingAlerts from './components/SmartOverspendingAlerts';
-import SMSExpenseExtractor from './components/SMSExpenseExtractor';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import NotificationDisplay from './components/NotificationDisplay';
 import WeeklyReportScheduler from './components/WeeklyReportScheduler';
-import DailyExpenseReminder from './components/DailyExpenseReminder';
 import { getTransactions } from './utils/api';
 
 // Animated Background Component
@@ -73,9 +68,6 @@ const Navbar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const navItems = [
     { name: 'Dashboard', icon: Home, key: 'dashboard' },
     { name: 'Analytics', icon: BarChart3, key: 'analytics' },
-    { name: 'What-If', icon: Calculator, key: 'whatif' },
-    { name: 'Overspending', icon: AlertTriangle, key: 'overspending' },
-    { name: 'SMS Extractor', icon: MessageSquare, key: 'sms-extractor' },
     { name: 'Reports', icon: FileText, key: 'reports' },
     { name: 'Settings', icon: Settings, key: 'settings' },
   ];
@@ -483,32 +475,7 @@ function AppContent() {
       }
       
       console.log('Transaction added successfully:', transactionWithUser);
-      
-      // Send notification for cross-verification
-      const notificationTitle = `New ${transactionWithUser.type === 'credit' ? 'Credit' : 'Debit'} Entry`;
-      const notificationMessage = `Transaction: ${transactionWithUser.merchant || transactionWithUser.description || 'N/A'}\nAmount: ₹${transactionWithUser.amount?.toLocaleString() || '0'}\nCategory: ${transactionWithUser.category || 'Uncategorized'}\nAccount: ${(bankAccounts.find(acc => acc.id === transactionWithUser.bankAccountId)?.name) || 'N/A'}`;
-      
-      // Create notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(notificationTitle, {
-          body: notificationMessage,
-          icon: '/favicon.ico',
-          tag: transactionWithUser._id
-        });
-      } else if ('Notification' in window && Notification.permission !== 'denied') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            new Notification(notificationTitle, {
-              body: notificationMessage,
-              icon: '/favicon.ico',
-              tag: transactionWithUser._id
-            });
-          }
-        });
-      }
-      
-      // Show in-app notification as well
-      alert(`✅ Transaction added successfully!\n\n${notificationTitle}\n${notificationMessage}`);
+      alert('Transaction added successfully!');
       
     } catch (err) {
       console.error('Error in handleAddTransaction:', err);
@@ -522,18 +489,9 @@ function AppContent() {
     
     switch(activeTab) {
       case 'analytics':
-        return <Analytics transactions={transactions} bankAccounts={bankAccounts} />;
+        return <Analytics transactions={transactions} />;
       case 'reports':
-        return <Reports transactions={transactions} accounts={bankAccounts} />;
-      case 'whatif':
-        return <WhatIfSimulator transactions={transactions} bankAccounts={bankAccounts} />;
-      case 'overspending':
-        return <SmartOverspendingAlerts transactions={transactions} user={user} />;
-      case 'sms-extractor':
-        return <SMSExpenseExtractor 
-          bankAccounts={bankAccounts} 
-          onAddTransaction={handleAddTransaction}
-        />;
+        return <Reports transactions={transactions} />;
       case 'settings':
         return <SettingsComponent 
           currentUser={user} 
@@ -547,7 +505,6 @@ function AppContent() {
         return (
           <>
             <WeeklyReportScheduler user={user} transactions={transactions} settings={userSettings.notifications} />
-            <DailyExpenseReminder user={user} transactions={transactions} settings={userSettings.notifications} />
             {/* Welcome Section */}
             <div className="text-center py-8 animate-elegant-entrance">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent mb-4">
@@ -595,16 +552,6 @@ function AppContent() {
                     >
                       Income
                     </button>
-                    <button
-                      className={`px-4 py-2 font-medium text-sm ${
-                        activeTransactionTab === 'cash' 
-                          ? 'text-white border-b-2 border-yellow-500' 
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                      onClick={() => setActiveTransactionTab('cash')}
-                    >
-                      Cash
-                    </button>
                   </div>
 
                   {/* Transaction Forms */}
@@ -613,13 +560,8 @@ function AppContent() {
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
                     />
-                  ) : activeTransactionTab === 'credit' ? (
-                    <AddCreditTransaction 
-                      onAdd={handleAddTransaction}
-                      accounts={bankAccounts}
-                    />
                   ) : (
-                    <AddCashTransaction 
+                    <AddCreditTransaction 
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
                     />
@@ -627,7 +569,7 @@ function AppContent() {
                 </div>
 
                 {/* Analytics Charts */}
-                <Analytics transactions={transactions} bankAccounts={bankAccounts} />
+                <Analytics transactions={transactions} />
               </div>
 
               {/* Right Column - Bank Account Manager, Graphs, Prediction Card and Recent Transactions */}
@@ -645,7 +587,7 @@ function AppContent() {
                 />
 
                 {/* Payment Reminders */}
-                <PaymentReminders user={user} bankAccounts={bankAccounts} />
+                <PaymentReminders user={user} />
                 
                 <PredictionCard transactions={transactions} />
                 
@@ -706,7 +648,6 @@ function AppContent() {
             onTransactionDetected={handleAddTransaction}
             isListening={isVoiceListening}
             setIsListening={setIsVoiceListening}
-            bankAccounts={bankAccounts}
           />
 
           {/* AI Chat Assistant */}

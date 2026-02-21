@@ -10,7 +10,7 @@ const auth = require('../middleware/auth');
 // Create transaction
 router.post('/', auth.optional, async (req, res) => {
   try {
-    const { amount, type, description, merchant, category } = req.body;
+    const { amount, type, description, merchant, category, bankAccountId, paymentMethod } = req.body;
 
     // If category not provided, detect category and subcategory from description/merchant
     let cat = category;
@@ -29,6 +29,8 @@ router.post('/', auth.optional, async (req, res) => {
       description,
       category: cat,
       subcategory,
+      bankAccountId: bankAccountId || null,
+      paymentMethod: paymentMethod || null
     });
 
     res.status(201).json(tx);

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Calendar, TrendingUp, TrendingDown, Download, Filter, FileText, BarChart3, CreditCard, PiggyBank } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const Reports = ({ transactions = [] }) => {
+const Reports = ({ transactions = [], accounts = [] }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -129,6 +129,35 @@ const Reports = ({ transactions = [] }) => {
       categoryData: categoryChartData
     };
   }, [transactions, selectedYear, selectedMonth, monthlyData]);
+
+  // Prepare account-specific data
+  const getAccountSpecificData = (accountId) => {
+    const accountTransactions = transactions.filter(tx => tx.bankAccountId === accountId);
+    const accountMonthTransactions = accountTransactions.filter(tx => {
+      if (tx.date) {
+        const date = new Date(tx.date);
+        return date.getFullYear() === selectedYear && date.getMonth() === selectedMonth;
+      }
+      return false;
+    });
+    
+    const accountIncome = accountMonthTransactions.filter(tx => tx.type === 'credit');
+    const accountExpenses = accountMonthTransactions.filter(tx => tx.type === 'debit');
+    
+    return {
+      income: accountIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0),
+      expenses: accountExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0),
+      net: accountIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0) - 
+           accountExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0),
+      transactions: accountMonthTransactions
+    };
+  };
+
+  // Get data for each account for the selected month
+  const accountData = accounts.map(account => ({
+    ...account,
+    ...getAccountSpecificData(account.id)
+  }));
 
   const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981', '#06b6d4', '#3b82f6'];
 
@@ -404,6 +433,89 @@ const Reports = ({ transactions = [] }) => {
           </ResponsiveContainer>
         </div>
       </motion.div>
+
+      {/* Individual Account Reports */}
+      {accountData.length > 0 && (
+        <motion.div
+          className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+            <CreditCard className="h-5 w-5 text-blue-400" />
+            <span>Individual Account Reports</span>
+          </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {accountData.map((account, index) => {
+              const hasAccountData = account.income > 0 || account.expenses > 0;
+              
+              return (
+                <div 
+                  key={account.id} 
+                  className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-semibold text-white">{account.name}</h4>
+                      <p className="text-sm text-gray-400">{account.accountNumber}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-400">Balance</p>
+                      <p className="text-lg font-bold text-white">₹{account.balance?.toLocaleString(undefined, { maximumFractionDigits: 2 }) || '0.00'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    <div className="bg-green-500/20 rounded-lg p-2 text-center">
+                      <p className="text-xs text-green-400">Income</p>
+                      <p className="text-sm font-bold text-green-400">₹{account.income.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                    </div>
+                    <div className="bg-red-500/20 rounded-lg p-2 text-center">
+                      <p className="text-xs text-red-400">Expenses</p>
+                      <p className="text-sm font-bold text-red-400">₹{account.expenses.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                    </div>
+                    <div className={`rounded-lg p-2 text-center ${account.net >= 0 ? 'bg-blue-500/20' : 'bg-amber-500/20'}`}>
+                      <p className="text-xs text-gray-400">Net</p>
+                      <p className={`text-sm font-bold ${account.net >= 0 ? 'text-blue-400' : 'text-amber-400'}`}>
+                        ₹{account.net.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {hasAccountData && (
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={[
+                          { 
+                            name: 'Income', 
+                            amount: account.income,
+                            fill: '#10b981' 
+                          }, 
+                          { 
+                            name: 'Expenses', 
+                            amount: account.expenses,
+                            fill: '#ef4444' 
+                          }
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.1)" />
+                          <XAxis dataKey="name" stroke="rgba(255, 255, 255, 0.6)" />
+                          <YAxis stroke="rgba(255, 255, 255, 0.6)" />
+                          <Tooltip 
+                            content={<CustomTooltip />}
+                          />
+                          <Bar dataKey="amount" name="Amount" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

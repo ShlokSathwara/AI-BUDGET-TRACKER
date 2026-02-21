@@ -9,7 +9,7 @@ import PredictionCard from '../components/PredictionCard';
 import VoiceAssistant from '../components/VoiceAssistant';
 import AIChatAssistant from '../components/AIChatAssistant';
 import { getTransactions } from '../utils/api';
-import { Clock, Receipt } from 'lucide-react';
+import { Clock, Receipt, IndianRupee } from 'lucide-react';
 
 export default function Dashboard() {
   const [transactions, setTransactions] = useState([]);
@@ -55,9 +55,9 @@ export default function Dashboard() {
   }
 
   // Calculate total in Rupees
-  const totalINR = transactions.reduce((s, t) => s + (t.amount || 0), 0);
-  const spendingINR = transactions.filter(t => t.type !== 'credit').reduce((s, t) => s + (t.amount || 0), 0);
   const incomeINR = transactions.filter(t => t.type === 'credit').reduce((s, t) => s + (t.amount || 0), 0);
+  const spendingINR = transactions.filter(t => t.type !== 'credit').reduce((s, t) => s + (t.amount || 0), 0);
+  const totalINR = incomeINR - spendingINR; // Net balance = income - spending
 
   return (
     <div className="min-h-screen relative">
@@ -158,6 +158,9 @@ export default function Dashboard() {
                     <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-400">No transactions yet</p>
                     <p className="text-sm text-gray-500 mt-1">Add your first transaction above or use voice commands</p>
+                    <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <p className="text-blue-300 text-sm">Tip: Your balance will show as zero until you add your first income or expense</p>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3 max-h-96 overflow-y-auto">

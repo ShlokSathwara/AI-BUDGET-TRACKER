@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Sparkles, Volume2, Send } from 'lucide-react';
+import { Mic, MicOff, Sparkles, Volume2, Send, Wallet, CreditCard, Coins } from 'lucide-react';
 
-const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) => {
+const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, bankAccounts = [] }) => {
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
+  const [pendingTransaction, setPendingTransaction] = useState(null);
   const recognitionRef = useRef(null);
 
   // Enhanced Indian Rupee categories and merchants with more comprehensive lists
@@ -31,6 +32,23 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
     'Ajio', 'Big Bazaar', 'Reliance Digital', 'Croma', 'Vijay Sales', 'Medlife',
     'Pharmeasy', '1mg', 'Nykaa', 'Lenskart', 'BlueStone', 'CaratLane'
   ];
+
+  // Payment modes
+  const paymentModes = {
+    cash: ['cash', 'hand', 'pocket', 'physical', 'coins', 'notes', 'currency'],
+    credit_card: ['credit', 'card', 'credit card', 'visa', 'mastercard', 'amex', 'plastic money'],
+    debit_card: ['debit', 'debit card', 'debitcard', 'card'],
+    digital: ['paytm', 'phonepe', 'google pay', 'gpay', 'upi', 'digital', 'online', 'transfer', 'net banking'],
+    bank: ['bank', 'account', 'checking', 'savings', 'account transfer']
+  };
+
+  // Account types
+  const accountTypes = {
+    savings: ['savings', 'saving', 'sb'],
+    current: ['current', 'business'],
+    credit: ['credit', 'credit card'],
+    debit: ['debit', 'debit card']
+  };
 
   useEffect(() => {
     // Initialize speech recognition
@@ -73,7 +91,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
         recognitionRef.current.stop();
       }
     };
-  }, [isListening]);
+  }, [isListening, bankAccounts]);
 
   const extractAmount = (text) => {
     // Look for various rupee amount patterns
@@ -85,7 +103,10 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
       /cost\s+(\d+(?:\.\d+)?)/i,
       /buy\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
       /purchase\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
-      /invest\s+(\d+(?:\.\d+)?)/i
+      /invest\s+(\d+(?:\.\d+)?)/i,
+      /got\s+(\d+(?:\.\d+)?)/i,
+      /received\s+(\d+(?:\.\d+)?)/i,
+      /salary\s+(\d+(?:\.\d+)?)/i
     ];
     
     for (const pattern of patterns) {
@@ -103,7 +124,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
     if (numbers) {
       for (const num of numbers) {
         const amount = parseFloat(num);
-        if (amount >= 10 && amount <= 100000) { // Reasonable expense range
+        if (amount >= 10 && amount <= 1000000) { // Reasonable expense/income range
           return amount;
         }
       }
@@ -127,7 +148,8 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
       /(?:at|from)\s+([A-Za-z\s]+)/i,
       /paid\s+([A-Za-z\s]+)\s+for/i,
       /bought\s+.*\s+from\s+([A-Za-z\s]+)/i,
-      /ordered\s+.*\s+from\s+([A-Za-z\s]+)/i
+      /ordered\s+.*\s+from\s+([A-Za-z\s]+)/i,
+      /purchased\s+from\s+([A-Za-z\s]+)/i
     ];
     
     for (const pattern of merchantPatterns) {
@@ -177,6 +199,67 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
     return 'Other';
   };
 
+  const extractPaymentMode = (text) => {
+    const textLower = text.toLowerCase();
+    
+    for (const [mode, keywords] of Object.entries(paymentModes)) {
+      if (keywords.some(keyword => textLower.includes(keyword))) {
+        return mode;
+      }
+    }
+    
+    // Default to digital if not specified
+    return 'digital';
+  };
+
+  const extractAccount = (text) => {
+    const textLower = text.toLowerCase();
+    
+    // Look for account-related keywords
+    for (const account of bankAccounts) {
+      const accountName = account.name.toLowerCase();
+      const lastFour = account.lastFourDigits;
+      
+      // Check if account name or last four digits are mentioned
+      if (textLower.includes(accountName) || textLower.includes(lastFour) || 
+          textLower.includes(account.name.split(' ')[0].toLowerCase())) {
+        return account.id;
+      }
+    }
+    
+    // Look for account type keywords
+    for (const [type, keywords] of Object.entries(accountTypes)) {
+      if (keywords.some(keyword => textLower.includes(keyword))) {
+        // Return first account of matching type if available
+        const matchingAccount = bankAccounts.find(acc => 
+          acc.name.toLowerCase().includes(type) || acc.name.toLowerCase().includes(type + ' account')
+        );
+        if (matchingAccount) return matchingAccount.id;
+      }
+    }
+    
+    // If no specific account is mentioned, return the first available account
+    return bankAccounts.length > 0 ? bankAccounts[0].id : null;
+  };
+
+  const extractTransactionType = (text) => {
+    const textLower = text.toLowerCase();
+    
+    if (textLower.includes('received') || 
+        textLower.includes('got') || 
+        textLower.includes('income') ||
+        textLower.includes('salary') ||
+        textLower.includes('refund') ||
+        textLower.includes('payment received') ||
+        textLower.includes('money in') ||
+        textLower.includes('credit') ||
+        textLower.includes('added')) {
+      return 'credit';
+    }
+    
+    return 'debit';
+  };
+
   const processVoiceCommand = (text) => {
     setIsProcessing(true);
     
@@ -186,22 +269,14 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
       setIsProcessing(false);
       return;
     }
-    
-    // Extract amount, merchant, and category
+
+    // Extract all components
     const amount = extractAmount(cleanText);
     const merchant = extractMerchant(cleanText);
     const category = extractCategory(cleanText);
-    
-    // Determine transaction type based on context
-    let type = 'debit';
-    if (cleanText.toLowerCase().includes('received') || 
-        cleanText.toLowerCase().includes('got') || 
-        cleanText.toLowerCase().includes('income') ||
-        cleanText.toLowerCase().includes('salary') ||
-        cleanText.toLowerCase().includes('refund') ||
-        cleanText.toLowerCase().includes('payment received')) {
-      type = 'credit';
-    }
+    const type = extractTransactionType(cleanText);
+    const paymentMode = extractPaymentMode(cleanText);
+    const accountId = extractAccount(cleanText);
     
     // Create transaction object
     if (amount) {
@@ -211,7 +286,10 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
         description: cleanText,
         category: category,
         type: type,
-        currency: 'INR'
+        currency: 'INR',
+        paymentMethod: paymentMode,
+        bankAccountId: accountId,
+        _id: Date.now().toString()
       };
 
       // Add to conversation history
@@ -227,20 +305,28 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
         setTranscript('');
         
         // Add confirmation to conversation history
+        const accountName = accountId ? (bankAccounts.find(acc => acc.id === accountId)?.name || 'Selected Account') : 'N/A';
         setConversationHistory(prev => [...prev, {
           type: 'assistant',
-          content: `Added ${type === 'credit' ? 'income' : 'expense'}: ₹${amount} for ${category}`,
+          content: `Added ${type === 'credit' ? 'income' : 'expense'}: ₹${amount} for ${category} via ${paymentMode} from ${accountName}`,
           timestamp: new Date()
         }]);
       }, 1000);
     } else {
-      // Try to understand if it's a general query or instruction
+      // Check if it's a general query or instruction
       if (cleanText.toLowerCase().includes('help') || 
           cleanText.toLowerCase().includes('what can you do') ||
           cleanText.toLowerCase().includes('how to use')) {
-        setError('I can help you track expenses by voice! Just say things like "Spent ₹250 on Swiggy" or "Got ₹5000 salary"');
+        setError('I can help you track expenses and income by voice! Just say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment"');
+      } else if (cleanText.toLowerCase().includes('add payment reminder') || 
+                 cleanText.toLowerCase().includes('set reminder')) {
+        setError('To add payment reminders, please use the app interface. Say "help" for more info.');
+      } else if (cleanText.toLowerCase().includes('analytics') || 
+                 cleanText.toLowerCase().includes('report') || 
+                 cleanText.toLowerCase().includes('summary')) {
+        setError('For analytics and reports, please use the app interface. Say "help" for more info.');
       } else {
-        setError('Could not detect amount in your voice command. Try saying "Spent ₹250 on groceries"');
+        setError('Could not detect amount in your voice command. Try saying "Spent ₹250 on groceries from my savings account"');
       }
       
       setIsProcessing(false);
@@ -284,9 +370,10 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening }) 
             <div className="space-y-3">
               <div className="p-3 bg-white/5 rounded-xl">
                 <p className="text-sm text-gray-300 mb-1">Try saying:</p>
-                <p className="text-white text-sm">"Spent ₹250 on Swiggy for dinner"</p>
-                <p className="text-white text-sm">"Paid ₹50 for Ola ride to office"</p>
-                <p className="text-white text-sm">"Got ₹5000 salary this month"</p>
+                <p className="text-white text-sm">"Spent ₹250 on Swiggy from savings account"</p>
+                <p className="text-white text-sm">"Paid ₹50 for Ola via digital payment"</p>
+                <p className="text-white text-sm">"Got ₹5000 salary via bank transfer"</p>
+                <p className="text-white text-sm">"Bought groceries ₹300 cash"</p>
               </div>
               
               {transcript && (
