@@ -153,6 +153,7 @@ const Navbar = () => {
 function App() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   // Load transactions from API
   useEffect(() => {
@@ -259,8 +260,8 @@ function App() {
           {/* Voice Assistant */}
           <VoiceAssistant 
             onTransactionDetected={handleAddTransaction}
-            isListening={false}
-            setIsListening={() => {}}
+            isListening={isVoiceListening}
+            setIsListening={setIsVoiceListening}
           />
 
           {/* AI Chat Assistant */}
