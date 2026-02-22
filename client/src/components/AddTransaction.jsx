@@ -116,6 +116,16 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
 
   const inputFields = [
     {
+      id: 'bankAccount',
+      label: 'Bank Account',
+      value: bankAccount,
+      onChange: setBankAccount,
+      icon: Wallet,
+      type: 'select',
+      error: errors.bankAccount,
+      options: [{ value: '', label: 'Select Account' }, ...getAccountOptions()]
+    },
+    {
       id: 'amount',
       label: 'Amount (₹)',
       value: amount,
@@ -150,16 +160,6 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       onChange: setCategory,
       placeholder: 'Food, Transport, Shopping, etc.',
       icon: Tag
-    },
-    {
-      id: 'bankAccount',
-      label: 'Bank Account',
-      value: bankAccount,
-      onChange: setBankAccount,
-      icon: Wallet,
-      type: 'select',
-      error: errors.bankAccount,
-      options: [{ value: '', label: 'Select Account' }, ...getAccountOptions()]
     },
     {
       id: 'paymentMethod',

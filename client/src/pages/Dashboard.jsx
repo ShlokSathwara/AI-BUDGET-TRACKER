@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import AnimatedBackground from '../components/AnimatedBackground';
 import SummaryCards from '../components/SummaryCards';
 import AddTransaction from '../components/AddTransaction';
+import AddCashTransaction from '../components/AddCashTransaction';
 import Analytics from '../components/Analytics';
 import PredictionCard from '../components/PredictionCard';
 import VoiceAssistant from '../components/VoiceAssistant';
@@ -112,7 +113,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Add Transaction and Analytics */}
             <div className="lg:col-span-2 space-y-6">
-              <AddTransaction onAdd={handleAdd} currency="INR" currencySymbol="₹" />
+              <AddCashTransaction onAdd={handleAdd} currency="INR" currencySymbol="₹" />
               
               <motion.div
                 initial={{ opacity: 0, y: 30 }}

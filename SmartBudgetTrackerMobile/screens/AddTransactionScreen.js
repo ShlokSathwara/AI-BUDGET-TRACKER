@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { 
   TextInput, 
@@ -7,7 +7,9 @@ import {
   Card, 
   Title, 
   RadioButton,
-  HelperText
+  HelperText,
+  Menu,
+  Provider as PaperProvider
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -21,7 +23,31 @@ const AddTransactionScreen = ({ route, navigation }) => {
     date: new Date().toISOString().split('T')[0],
     description: ''
   });
+  const [selectedBankAccount, setSelectedBankAccount] = useState('');
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Load bank accounts from AsyncStorage
+  useEffect(() => {
+    loadBankAccounts();
+  }, []);
+
+  const loadBankAccounts = async () => {
+    try {
+      const userAccountsKey = `bank_accounts_${userId}`;
+      const savedAccounts = await AsyncStorage.getItem(userAccountsKey);
+      if (savedAccounts) {
+        const parsedAccounts = JSON.parse(savedAccounts);
+        setBankAccounts(Array.isArray(parsedAccounts) ? parsedAccounts : []);
+      } else {
+        setBankAccounts([]);
+      }
+    } catch (error) {
+      console.log('Error loading bank accounts:', error);
+      setBankAccounts([]);
+    }
+  };
 
   const categories = [
     'Food & Dining', 'Transportation', 'Shopping', 'Entertainment', 
@@ -87,6 +113,12 @@ const AddTransactionScreen = ({ route, navigation }) => {
   const handleAddTransaction = async () => {
     if (!validateForm()) return;
 
+    // Validate that a bank account is selected
+    if (!selectedBankAccount) {
+      Alert.alert('Error', 'Please select a bank account');
+      return;
+    }
+
     setLoading(true);
     
     try {
@@ -100,10 +132,11 @@ const AddTransactionScreen = ({ route, navigation }) => {
         finalTransaction.category = autoCategorize(finalTransaction.merchant) || 'Other';
       }
       
-      // Create new transaction
+      // Create new transaction with bank account info
       const newTransaction = {
         id: Date.now().toString(),
         ...finalTransaction,
+        bankAccountId: selectedBankAccount,
         amount: parseFloat(finalTransaction.amount),
         createdAt: new Date().toISOString()
       };
@@ -122,7 +155,7 @@ const AddTransactionScreen = ({ route, navigation }) => {
       // Show success message and go back
       Alert.alert(
         'Success', 
-        `Transaction added successfully!\n\nCategory: ${newTransaction.category}`,
+        `Transaction added successfully!\n\nCategory: ${newTransaction.category}\nAccount: ${bankAccounts.find(acc => acc.id === selectedBankAccount)?.name}`,
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
       
@@ -139,6 +172,53 @@ const AddTransactionScreen = ({ route, navigation }) => {
       <Card style={styles.card}>
         <Card.Content>
           <Title style={styles.title}>Add New Transaction</Title>
+          
+          {/* Bank Account Selection */}
+          <Text style={styles.label}>Select Bank Account</Text>
+          <View style={styles.accountSelectorContainer}>
+            <Button
+              mode="outlined"
+              onPress={() => setMenuVisible(true)}
+              style={styles.accountSelectorButton}
+              labelStyle={styles.accountSelectorLabel}
+            >
+              {selectedBankAccount 
+                ? bankAccounts.find(acc => acc.id === selectedBankAccount)?.name + ' (****' + bankAccounts.find(acc => acc.id === selectedBankAccount)?.lastFourDigits + ')'
+                : 'Select Bank Account'}
+            </Button>
+            
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}} />
+              }
+            >
+              {bankAccounts.map((account) => (
+                <Menu.Item
+                  key={account.id}
+                  onPress={() => {
+                    setSelectedBankAccount(account.id);
+                    setMenuVisible(false);
+                  }}
+                  title={`${account.name} (****${account.lastFourDigits})`}
+                />
+              ))}
+              {bankAccounts.length === 0 && (
+                <Menu.Item
+                  onPress={() => {
+                    Alert.alert(
+                      'No Accounts',
+                      'Please add a bank account first. You can do this in the Settings section.',
+                      [{text: 'OK'}]
+                    );
+                    setMenuVisible(false);
+                  }}
+                  title="No bank accounts found"
+                />
+              )}
+            </Menu>
+          </View>
           
           {/* Transaction Type */}
           <Text style={styles.label}>Transaction Type</Text>
@@ -326,6 +406,18 @@ const styles = StyleSheet.create({
   submitButton: {
     flex: 0.45,
     backgroundColor: '#6200ee',
+  },
+  accountSelectorContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  accountSelectorButton: {
+    height: 50,
+    justifyContent: 'center',
+  },
+  accountSelectorLabel: {
+    textAlign: 'left',
+    fontSize: 16,
   },
 });
 
