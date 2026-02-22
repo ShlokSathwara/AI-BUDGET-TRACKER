@@ -277,7 +277,7 @@ function AppContent() {
   const [loading, setLoading] = useState(false);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeTransactionTab, setActiveTransactionTab] = useState('expense');
+  const [activeTransactionTab, setActiveTransactionTab] = useState('expense'); // 'expense', 'credit', 'cash', 'overspending'
   const [bankAccounts, setBankAccounts] = useState([]);
   const [goals, setGoals] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -731,10 +731,10 @@ function AppContent() {
             {/* Summary Cards */}
             <SummaryCards transactions={transactions} />
 
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Bank Accounts, Add Transaction and Analytics */}
-              <div className="lg:col-span-2 space-y-8">
+            {/* Main Content Grid - Single Column Layout */}
+            <div className="grid grid-cols-1 gap-6">
+              {/* Main Content - Bank Accounts, Add Transaction and Analytics */}
+              <div className="space-y-8">
                 {/* Bank Account Manager */}
                 <BankAccountManager 
                   user={user} 
@@ -774,6 +774,16 @@ function AppContent() {
                     >
                       Cash
                     </button>
+                    <button
+                      className={`px-4 py-2 font-medium text-sm ${
+                        activeTransactionTab === 'overspending' 
+                          ? 'text-white border-b-2 border-red-500' 
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                      onClick={() => setActiveTransactionTab('overspending')}
+                    >
+                      Overspending
+                    </button>
                   </div>
 
                   {/* Transaction Forms */}
@@ -787,27 +797,19 @@ function AppContent() {
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
                     />
-                  ) : (
+                  ) : activeTransactionTab === 'cash' ? (
                     <AddCashTransaction 
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
                     />
+                  ) : (
+                    <SmartOverspendingAlerts 
+                      transactions={transactions}
+                      user={user}
+                    />
                   )}
                 </div>
 
-              </div>
-
-              {/* Right Column - Payment Reminders, Saving Planner and Recent Transactions */}
-              <div className="space-y-8">
-
-                {/* Payment Reminders */}
-                <PaymentReminders user={user} bankAccounts={bankAccounts} />
-                
-                {/* AI-Powered Saving Planner */}
-                <SavingPlanner transactions={transactions} />
-                
-                <PredictionCard transactions={transactions} />
-                
                 {/* Recent Transactions */}
                 <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 classy-element">
                   <h2 className="text-2xl font-bold mb-4">Recent Transactions</h2>
@@ -857,6 +859,7 @@ function AppContent() {
                     </div>
                   )}
                 </div>
+
               </div>
             </div>
           </>
