@@ -156,53 +156,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
     setConfirmPassword('');
   };
 
-  const handleResendVerification = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase()
-        })
-      });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        throw new Error('Invalid response from server');
-      }
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend verification email');
-      }
-
-      setSuccess(data.message || 'Verification email has been sent!');
-    } catch (err) {
-      console.error('Resend verification error:', err);
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-blue-900 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20 shadow-2xl">
@@ -350,19 +303,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
           </button>
         </div>
 
-        <div className="mt-6 text-center">
-          <button
-            onClick={toggleMode}
-            disabled={isLoading}
-            className="text-blue-400 hover:text-blue-300 text-sm font-medium disabled:opacity-50"
-          >
-            {isLoginMode 
-              ? "Don't have an account? Create one" 
-              : "Already have an account? Sign in"
-            }
-          </button>
-        </div>
-
         {isLoginMode && (
           <div className="mt-4 text-center">
             <button
@@ -383,8 +323,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
     </div>
   );
 };
-
-export default SimpleAuth;
 
 // Forgot password function
 const handleForgotPassword = async () => {
@@ -428,3 +366,5 @@ const handleForgotPassword = async () => {
     alert(err.message);
   }
 };
+
+export default SimpleAuth;
