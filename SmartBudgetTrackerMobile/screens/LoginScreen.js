@@ -101,15 +101,6 @@ const LoginScreen = ({ onLogin }) => {
 
       if (isLoginMode) {
         // Login successful
-        if (data.requiresEmailVerification) {
-          Alert.alert(
-            'Email Verification Required',
-            'Please verify your email address before logging in. Check your inbox for the verification email.',
-            [{ text: 'OK' }]
-          );
-          return;
-        }
-        
         // Store user data
         const userData = {
           id: data.user.id,
@@ -124,12 +115,13 @@ const LoginScreen = ({ onLogin }) => {
         // Signup successful
         Alert.alert(
           'Registration Successful',
-          'Please check your email for the verification link to complete your registration.',
+          'You can now log in to your account.',
           [
             { 
               text: 'OK', 
               onPress: () => {
                 setIsLoginMode(true);
+                setName('');
                 setPassword('');
                 setConfirmPassword('');
               }
@@ -266,6 +258,18 @@ const LoginScreen = ({ onLogin }) => {
                 : "Already have an account? Sign in"
               }
             </Button>
+
+            {isLoginMode && (
+              <Button
+                mode="text"
+                onPress={handleForgotPassword}
+                disabled={isLoading}
+                style={styles.forgotPasswordButton}
+                labelStyle={styles.toggleButtonText}
+              >
+                Forgot your password?
+              </Button>
+            )}
             
             <Text style={styles.securityNote}>
               Your data is securely stored and all communications are encrypted
@@ -275,6 +279,60 @@ const LoginScreen = ({ onLogin }) => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
+};
+
+const handleForgotPassword = async () => {
+  const emailInput = await new Promise((resolve) => {
+    Alert.prompt(
+      'Forgot Password',
+      'Please enter your email address:',
+      [
+        { text: 'Cancel', onPress: () => resolve(null) },
+        { text: 'Submit', onPress: (value) => resolve(value) }
+      ],
+      'plain-text',
+      '',
+      'email-address'
+    );
+  });
+
+  if (!emailInput) {
+    return; // User cancelled
+  }
+
+  if (!validateEmail(emailInput)) {
+    Alert.alert('Error', 'Please enter a valid email address');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: emailInput.trim().toLowerCase()
+      })
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      throw new Error('Invalid response from server');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send password reset email');
+    }
+
+    Alert.alert('Success', data.message || 'Password reset link has been sent to your email!');
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    Alert.alert('Error', err.message);
+  }
 };
 
 const styles = StyleSheet.create({
@@ -322,6 +380,9 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     fontSize: 14,
     color: '#6200ee',
+  },
+  forgotPasswordButton: {
+    marginTop: 5,
   },
   securityNote: {
     marginTop: 20,
