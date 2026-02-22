@@ -11,6 +11,7 @@ import LoginScreen from './screens/LoginScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import AddTransactionScreen from './screens/AddTransactionScreen';
 import BankAccountScreen from './screens/BankAccountScreen';
+import FamilyBudgetScreen from './screens/FamilyBudgetScreen';
 import SavingsGoalScreen from './screens/SavingsGoalScreen';
 import SettingsScreen from './screens/SettingsScreen';
 
@@ -31,6 +32,8 @@ function MainTabs({ user, onLogout }) {
             iconName = focused ? 'wallet' : 'wallet-outline';
           } else if (route.name === 'Transactions') {
             iconName = focused ? 'card' : 'card-outline';
+          } else if (route.name === 'FamilyBudget') {
+            iconName = focused ? 'account-group' : 'account-group-outline';
           } else if (route.name === 'Savings') {
             iconName = focused ? 'cash' : 'cash-outline';
           } else if (route.name === 'Settings') {
@@ -60,6 +63,12 @@ function MainTabs({ user, onLogout }) {
         component={AddTransactionScreen}
         options={{ title: 'Add Transaction' }}
       />
+      <Tab.Screen 
+        name="FamilyBudget" 
+        options={{ title: 'Family Budget' }}
+      >
+        {props => <FamilyBudgetScreen {...props} userId={user.id} />}
+      </Tab.Screen>
       <Tab.Screen 
         name="Savings" 
         options={{ title: 'Savings Goals' }}

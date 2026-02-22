@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon, Calculator, AlertTriangle, MessageSquare, PiggyBank, Edit3, Trash2 } from 'lucide-react';
+import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon, Calculator, AlertTriangle, MessageSquare, PiggyBank, Edit3, Trash2, Users } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import AddTransaction from './components/AddTransaction';
 import AddCreditTransaction from './components/AddCreditTransaction';
@@ -27,6 +27,7 @@ import NotificationDisplay from './components/NotificationDisplay';
 import WeeklyReportScheduler from './components/WeeklyReportScheduler';
 import DailyExpenseReminder from './components/DailyExpenseReminder';
 import { getTransactions } from './utils/api';
+import FamilyBudgetManager from './components/FamilyBudgetManager';
 
 // Animated Background Component
 const AnimatedBackground = () => {
@@ -88,6 +89,7 @@ const Navbar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const navItems = [
     { name: 'Dashboard', icon: Home, key: 'dashboard' },
     { name: 'Analytics', icon: BarChart3, key: 'analytics' },
+    { name: 'Family Budget', icon: Users, key: 'family-budget' },
     { name: 'Saving Goals', icon: PiggyBank, key: 'saving-goals' },
     { name: 'What-If', icon: Calculator, key: 'whatif' },
     { name: 'Overspending', icon: AlertTriangle, key: 'overspending' },
@@ -684,6 +686,16 @@ function AppContent() {
     const userSettings = loadUserSettings();
     
     switch(activeTab) {
+      case 'family-budget':
+        return <FamilyBudgetManager 
+          currentUser={user} 
+          transactions={transactions} 
+          bankAccounts={bankAccounts}
+          onFamilyDataUpdate={(familyMembers) => {
+            console.log('Family data updated:', familyMembers);
+            // Handle family data updates here
+          }}
+        />;
       case 'analytics':
         return <Analytics transactions={transactions} bankAccounts={bankAccounts} />;
       case 'reports':
