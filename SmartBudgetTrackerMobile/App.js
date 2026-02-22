@@ -10,8 +10,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoginScreen from './screens/LoginScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import AddTransactionScreen from './screens/AddTransactionScreen';
-import SettingsScreen from './screens/SettingsScreen';
+import BankAccountScreen from './screens/BankAccountScreen';
 import SavingsGoalScreen from './screens/SavingsGoalScreen';
+import SettingsScreen from './screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -26,8 +27,10 @@ function MainTabs({ user, onLogout }) {
 
           if (route.name === 'Dashboard') {
             iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Transactions') {
+          } else if (route.name === 'BankAccounts') {
             iconName = focused ? 'wallet' : 'wallet-outline';
+          } else if (route.name === 'Transactions') {
+            iconName = focused ? 'card' : 'card-outline';
           } else if (route.name === 'Savings') {
             iconName = focused ? 'cash' : 'cash-outline';
           } else if (route.name === 'Settings') {
@@ -45,6 +48,12 @@ function MainTabs({ user, onLogout }) {
         options={{ title: 'Home' }}
       >
         {props => <DashboardScreen {...props} user={user} onLogout={onLogout} />}
+      </Tab.Screen>
+      <Tab.Screen 
+        name="BankAccounts" 
+        options={{ title: 'Bank Accounts' }}
+      >
+        {props => <BankAccountScreen {...props} userId={user.id} />}
       </Tab.Screen>
       <Tab.Screen 
         name="Transactions" 

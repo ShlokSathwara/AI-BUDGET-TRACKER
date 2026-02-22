@@ -733,8 +733,14 @@ function AppContent() {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Add Transaction and Analytics */}
-              <div className="lg:col-span-2 space-y-6">
+              {/* Left Column - Bank Accounts, Add Transaction and Analytics */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Bank Account Manager */}
+                <BankAccountManager 
+                  user={user} 
+                  onUpdateAccounts={setBankAccounts}
+                />
+                
                 {/* Transaction Type Tabs */}
                 <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element">
                   <div className="flex border-b border-white/10 mb-4">
@@ -793,14 +799,8 @@ function AppContent() {
                 <Analytics transactions={transactions} bankAccounts={bankAccounts} />
               </div>
 
-              {/* Right Column - Bank Account Manager, Graphs, Prediction Card, Saving Planner and Recent Transactions */}
-              <div className="space-y-6">
-                {/* Bank Account Manager */}
-                <BankAccountManager 
-                  user={user} 
-                  onUpdateAccounts={setBankAccounts}
-                />
-                
+              {/* Right Column - Bank Account Graphs, Payment Reminders, Saving Planner and Recent Transactions */}
+              <div className="space-y-8">
                 {/* Bank Account Graphs */}
                 <BankAccountGraphs 
                   accounts={bankAccounts} 
