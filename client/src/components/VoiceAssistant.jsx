@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff, Sparkles, Volume2, Send, Wallet, CreditCard, Coins } from 'lucide-react';
 
-const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, bankAccounts = [] }) => {
+const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, bankAccounts = [], setActiveTab }) => {
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -260,6 +260,38 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
     return 'debit';
   };
 
+  // Function to handle general commands and navigation
+  const handleGeneralCommand = (text) => {
+    const lowerText = text.toLowerCase();
+    
+    // Navigation commands
+    if (lowerText.includes('dashboard') || lowerText.includes('home')) {
+      return { type: 'navigate', destination: 'dashboard' };
+    } else if (lowerText.includes('analytics') || lowerText.includes('charts')) {
+      return { type: 'navigate', destination: 'analytics' };
+    } else if (lowerText.includes('reports')) {
+      return { type: 'navigate', destination: 'reports' };
+    } else if (lowerText.includes('goals') || lowerText.includes('savings')) {
+      return { type: 'navigate', destination: 'saving-goals' };
+    } else if (lowerText.includes('settings')) {
+      return { type: 'navigate', destination: 'settings' };
+    } else if (lowerText.includes('family') || lowerText.includes('budget')) {
+      return { type: 'navigate', destination: 'family-budget' };
+    } else if (lowerText.includes('what if') || lowerText.includes('calculator')) {
+      return { type: 'navigate', destination: 'whatif' };
+    } else if (lowerText.includes('sms') || lowerText.includes('extract')) {
+      return { type: 'navigate', destination: 'sms-extractor' };
+    }
+    
+    // Help command
+    if (lowerText.includes('help') || lowerText.includes('what can you do') || lowerText.includes('how to use')) {
+      return { type: 'help' };
+    }
+    
+    // General response
+    return { type: 'general' };
+  };
+
   const processVoiceCommand = (text) => {
     setIsProcessing(true);
     
@@ -270,7 +302,41 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
       return;
     }
 
-    // Extract all components
+    // Check if it's a general command first
+    const generalCmd = handleGeneralCommand(cleanText);
+    
+    if (generalCmd.type === 'navigate') {
+      // Add to conversation history
+      setConversationHistory(prev => [...prev, {
+        type: 'user',
+        content: cleanText,
+        timestamp: new Date()
+      }]);
+
+      setTimeout(() => {
+        // Navigate to the requested tab if setActiveTab is provided
+        if (setActiveTab && typeof setActiveTab === 'function') {
+          setActiveTab(generalCmd.destination);
+        }
+        setIsProcessing(false);
+        setTranscript('');
+        
+        // Add confirmation to conversation history
+        setConversationHistory(prev => [...prev, {
+          type: 'assistant',
+          content: `Navigating to ${generalCmd.destination.replace('-', ' ')}.`,
+          timestamp: new Date()
+        }]);
+      }, 1000);
+      return;
+    } else if (generalCmd.type === 'help') {
+      setIsProcessing(false);
+      setError('I am your AI assistant! I can help you track expenses and income by voice. Say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment". I can also navigate to different sections like dashboard, analytics, accounts, goals, settings, etc.');
+      setTimeout(() => setError(''), 10000);
+      return;
+    }
+
+    // Extract all components for transaction
     const amount = extractAmount(cleanText);
     const merchant = extractMerchant(cleanText);
     const category = extractCategory(cleanText);
@@ -289,7 +355,8 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
         currency: 'INR',
         paymentMethod: paymentMode,
         bankAccountId: accountId,
-        _id: Date.now().toString()
+        _id: Date.now().toString(),
+        mode: paymentMode === 'cash' ? 'cash' : 'non-cash'  // Add mode property
       };
 
       // Add to conversation history

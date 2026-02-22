@@ -900,6 +900,7 @@ function AppContent() {
             isListening={isVoiceListening}
             setIsListening={setIsVoiceListening}
             bankAccounts={bankAccounts}
+            setActiveTab={setActiveTab}
           />
 
           {/* AI Chat Assistant */}
