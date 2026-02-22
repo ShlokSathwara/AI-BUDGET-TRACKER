@@ -21,6 +21,9 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
   const [loading, setLoading] = useState(false);
   const [transactionErrors, setTransactionErrors] = useState({});
 
+  // Check if there are any bank accounts available
+  const hasAccounts = Array.isArray(accounts) && accounts.length > 0;
+
   // Validate bank account form
   const validateAccountForm = () => {
     const newErrors = {};
@@ -56,6 +59,13 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
   // Validate transaction form
   const validateTransactionForm = () => {
     const newErrors = {};
+    
+    // Check if there are any bank accounts available
+    if (!hasAccounts && paymentMethod !== 'cash') {
+      newErrors.general = 'Please add at least one bank account before adding transactions.';
+      setTransactionErrors(newErrors);
+      return false;
+    }
     
     if (!amount || parseFloat(amount) <= 0) {
       newErrors.amount = 'Amount must be greater than 0';
@@ -380,6 +390,13 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
           </div>
         </div>
 
+        {transactionErrors.general && (
+          <div className="col-span-full">
+            <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              {transactionErrors.general}
+            </p>
+          </div>
+        )}
         {transactionErrors.submit && (
           <div className="col-span-full">
             <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">

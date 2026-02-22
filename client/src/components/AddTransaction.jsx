@@ -12,8 +12,18 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  // Check if there are any bank accounts available
+  const hasAccounts = Array.isArray(accounts) && accounts.length > 0;
+
   const validateForm = () => {
     const newErrors = {};
+    
+    // Check if there are any bank accounts available
+    if (!hasAccounts && paymentMethod !== 'cash') {
+      newErrors.general = 'Please add at least one bank account before adding transactions.';
+      setErrors(newErrors);
+      return false;
+    }
     
     if (!amount || parseFloat(amount) <= 0) {
       newErrors.amount = 'Amount must be greater than 0';
@@ -236,6 +246,13 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
               )}
             </div>
           ))}
+          {errors.general && (
+            <div className="col-span-full">
+              <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                {errors.general}
+              </p>
+            </div>
+          )}
           {errors.submit && (
             <div className="col-span-full">
               <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
