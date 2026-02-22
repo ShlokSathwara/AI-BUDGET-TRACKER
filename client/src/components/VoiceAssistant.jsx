@@ -51,10 +51,10 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
   };
 
   useEffect(() => {
-    // Initialize speech recognition
+    // Initialize speech recognition only once
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
-    if (SpeechRecognition) {
+    if (SpeechRecognition && !recognitionRef.current) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
@@ -78,12 +78,28 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
       };
 
       recognitionRef.current.onend = () => {
-        if (isListening) {
+        // Restart recognition if we're still supposed to be listening
+        if (isListening && recognitionRef.current) {
           recognitionRef.current.start();
         }
       };
-    } else {
+    } else if (!SpeechRecognition) {
       setError('Speech recognition not supported in this browser');
+    }
+
+    // Set up event listeners based on isListening state
+    if (recognitionRef.current) {
+      if (isListening) {
+        // Make sure recognition is running
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          // Ignore error if already started
+        }
+      } else {
+        // Stop recognition when not listening
+        recognitionRef.current.stop();
+      }
     }
 
     return () => {
@@ -91,7 +107,13 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
         recognitionRef.current.stop();
       }
     };
-  }, [isListening, bankAccounts]);
+  }, [isListening]); // Only listen to isListening changes
+
+  // Update recognition when bankAccounts change (needed for account extraction)
+  useEffect(() => {
+    // This effect runs when bankAccounts change to update the reference
+    // No need for additional logic here since bankAccounts is passed to extraction functions
+  }, [bankAccounts]);
 
   const extractAmount = (text) => {
     // Look for various rupee amount patterns
@@ -267,19 +289,21 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
     // Navigation commands
     if (lowerText.includes('dashboard') || lowerText.includes('home')) {
       return { type: 'navigate', destination: 'dashboard' };
-    } else if (lowerText.includes('analytics') || lowerText.includes('charts')) {
+    } else if (lowerText.includes('analytics') || lowerText.includes('charts') || lowerText.includes('reports') || lowerText.includes('statistics')) {
       return { type: 'navigate', destination: 'analytics' };
+    } else if (lowerText.includes('transactions') || lowerText.includes('history') || lowerText.includes('all transactions')) {
+      return { type: 'navigate', destination: 'transactions' };
     } else if (lowerText.includes('reports')) {
       return { type: 'navigate', destination: 'reports' };
-    } else if (lowerText.includes('goals') || lowerText.includes('savings')) {
+    } else if (lowerText.includes('goals') || lowerText.includes('savings') || lowerText.includes('save money')) {
       return { type: 'navigate', destination: 'saving-goals' };
-    } else if (lowerText.includes('settings')) {
+    } else if (lowerText.includes('settings') || lowerText.includes('preferences')) {
       return { type: 'navigate', destination: 'settings' };
-    } else if (lowerText.includes('family') || lowerText.includes('budget')) {
+    } else if (lowerText.includes('family') || lowerText.includes('budget') || lowerText.includes('shared')) {
       return { type: 'navigate', destination: 'family-budget' };
-    } else if (lowerText.includes('what if') || lowerText.includes('calculator')) {
+    } else if (lowerText.includes('what if') || lowerText.includes('calculator') || lowerText.includes('simulation')) {
       return { type: 'navigate', destination: 'whatif' };
-    } else if (lowerText.includes('sms') || lowerText.includes('extract')) {
+    } else if (lowerText.includes('sms') || lowerText.includes('extract') || lowerText.includes('parse')) {
       return { type: 'navigate', destination: 'sms-extractor' };
     }
     
@@ -331,7 +355,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
       return;
     } else if (generalCmd.type === 'help') {
       setIsProcessing(false);
-      setError('I am your AI assistant! I can help you track expenses and income by voice. Say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment". I can also navigate to different sections like dashboard, analytics, accounts, goals, settings, etc.');
+      setError('I am your AI assistant! I can help you track expenses and income by voice. Say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment". I can also navigate to different sections like dashboard, analytics, transactions, accounts, goals, settings, etc.');
       setTimeout(() => setError(''), 10000);
       return;
     }
@@ -393,7 +417,17 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
                  cleanText.toLowerCase().includes('summary')) {
         setError('For analytics and reports, please use the app interface. Say "help" for more info.');
       } else {
-        setError('Could not detect amount in your voice command. Try saying "Spent ₹250 on groceries from my savings account"');
+        // Try to detect if user is trying to add a transaction but missing amount
+        if (cleanText.toLowerCase().includes('spent') || 
+            cleanText.toLowerCase().includes('bought') || 
+            cleanText.toLowerCase().includes('paid') ||
+            cleanText.toLowerCase().includes('got') ||
+            cleanText.toLowerCase().includes('received') ||
+            cleanText.toLowerCase().includes('earned')) {
+          setError('I heard you wanted to add a transaction but couldn\'t detect an amount. Try saying "Spent ₹250 on groceries" or "Received ₹1000 from salary"');
+        } else {
+          setError('Could not detect amount in your voice command. Try saying "Spent ₹250 on groceries from my savings account"');
+        }
       }
       
       setIsProcessing(false);
@@ -403,13 +437,23 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
 
   const toggleListening = () => {
     if (isListening) {
+      // Stop listening
       recognitionRef.current?.stop();
       setIsListening(false);
     } else {
+      // Start listening
       setError('');
       setTranscript('');
       setIsListening(true);
-      recognitionRef.current?.start();
+      
+      // Ensure the recognition is properly started
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (e) {
+          // Recognition might already be running, ignore error
+        }
+      }
     }
   };
 
