@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import SimpleAuth from './components/SimpleAuth';
+import MinimalAuth from './components/MinimalAuth';
 import BankAccountManager from './components/BankAccountManager';
 import AddTransaction from './components/AddTransaction';
 import AddCreditTransaction from './components/AddCreditTransaction';
@@ -170,7 +170,7 @@ function AppSimple() {
 
   // If not authenticated, show login screen
   if (!isAuthenticated) {
-    return <SimpleAuth onAuthSuccess={handleAuthSuccess} />;
+    return <MinimalAuth onAuthSuccess={handleAuthSuccess} />;
   }
 
   // Main app interface

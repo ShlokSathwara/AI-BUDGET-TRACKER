@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { User, Mail, Loader2, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { User, Mail, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const SimpleAuth = ({ onAuthSuccess }) => {
+const MinimalAuth = ({ onAuthSuccess }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +14,9 @@ const SimpleAuth = ({ onAuthSuccess }) => {
     return emailRegex.test(email);
   };
 
-  const handleAuth = async () => {
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    
     // Reset messages
     setError('');
     setSuccess('');
@@ -38,61 +40,31 @@ const SimpleAuth = ({ onAuthSuccess }) => {
     setIsLoading(true);
     
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim().toLowerCase()
-        })
-      });
+      // Create a local user object without server authentication
+      const userData = {
+        id: `local_${Date.now()}`, // Generate a local ID
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        emailVerified: true,
+        isLocal: true
+      };
 
-      // Check if response is ok before parsing JSON
-      if (!response.ok) {
-        let errorMessage = 'Authentication failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (jsonError) {
-          // If JSON parsing fails, use status text
-          errorMessage = response.statusText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
-      // Try to parse JSON response
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        console.error('Response status:', response.status);
-        console.error('Response headers:', response.headers);
-        throw new Error('Invalid response from server. Please try again.');
-      }
-
-      // Login successful
-      // Store token and user data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      // Store user data locally (no server authentication)
+      localStorage.setItem('currentUser', JSON.stringify(userData));
       localStorage.setItem('isAuthenticated', 'true');
       
+      // Create a simple identifier instead of a full JWT to avoid decoding issues
+      localStorage.setItem('token', `local_${userData.id}`);
+      
       // Success callback
-      onAuthSuccess(data.user);
+      onAuthSuccess(userData);
+      setSuccess('Successfully logged in!');
       
     } catch (err) {
       console.error('Auth error:', err);
       setError(err.message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      handleAuth();
     }
   };
 
@@ -213,7 +185,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onKeyPress={handleKeyPress}
                 placeholder="Enter your full name"
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                 disabled={isLoading}
@@ -231,7 +202,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
                 placeholder="Enter your email address"
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                 disabled={isLoading}
@@ -266,12 +236,12 @@ const SimpleAuth = ({ onAuthSuccess }) => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <p className="mb-1">Your data is securely stored and protected</p>
-          <p>All communications are encrypted</p>
+          <p className="mb-1">Your data is stored locally on your device</p>
+          <p>No server authentication required</p>
         </motion.div>
       </motion.div>
     </div>
   );
 };
 
-export default SimpleAuth;
+export default MinimalAuth;

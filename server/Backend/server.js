@@ -9,8 +9,6 @@ const transactionRoutes = require('./routes/transactions');
 
 // Import models to ensure they're registered with Mongoose
 require('./models/User');
-require('./models/PhoneUser');
-require('./models/OTP');
 
 const app = express();
 

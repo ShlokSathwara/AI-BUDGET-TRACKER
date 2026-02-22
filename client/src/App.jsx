@@ -16,7 +16,6 @@ import TransactionSections from './components/TransactionSections';
 import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
-import SimpleAuth from './components/SimpleAuth';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import SmartOverspendingAlerts from './components/SmartOverspendingAlerts';
 import SMSExpenseExtractor from './components/SMSExpenseExtractor';
@@ -28,6 +27,7 @@ import WeeklyReportScheduler from './components/WeeklyReportScheduler';
 import DailyExpenseReminder from './components/DailyExpenseReminder';
 import { getTransactions } from './utils/api';
 import FamilyBudgetManager from './components/FamilyBudgetManager';
+import MinimalAuth from './components/MinimalAuth';
 
 // Animated Background Component
 const AnimatedBackground = () => {
@@ -92,7 +92,6 @@ const Navbar = ({ activeTab, setActiveTab, user, onLogout }) => {
     { name: 'Family Budget', icon: Users, key: 'family-budget' },
     { name: 'Saving Goals', icon: PiggyBank, key: 'saving-goals' },
     { name: 'What-If', icon: Calculator, key: 'whatif' },
-    { name: 'Overspending', icon: AlertTriangle, key: 'overspending' },
     { name: 'SMS Extractor', icon: MessageSquare, key: 'sms-extractor' },
     { name: 'Reports', icon: FileText, key: 'reports' },
     { name: 'Settings', icon: Settings, key: 'settings' },
@@ -712,8 +711,7 @@ function AppContent() {
         return <Reports transactions={transactions} accounts={bankAccounts} />;
       case 'whatif':
         return <WhatIfSimulator transactions={transactions} bankAccounts={bankAccounts} />;
-      case 'overspending':
-        return <SmartOverspendingAlerts transactions={transactions} user={user} />;
+
       case 'sms-extractor':
         return <SMSExpenseExtractor 
           bankAccounts={bankAccounts} 
@@ -765,7 +763,7 @@ function AppContent() {
                   onUpdateAccounts={setBankAccounts}
                 />
                 
-                {/* Transaction Type Tabs (without transaction tab) */}
+                {/* Transaction Type Tabs (without overspending tab) */}
                 <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element">
                   <div className="flex border-b border-white/10 mb-4">
                     <button
@@ -835,16 +833,7 @@ function AppContent() {
                 </div>
               </div>
 
-              {/* Middle Column - Payment Reminders (moved from right) */}
-              <div className="space-y-8">
-                <PaymentReminders user={user} bankAccounts={bankAccounts} />
-                
-                <SavingPlanner transactions={transactions} />
-                
-                <PredictionCard transactions={transactions} />
-              </div>
-
-              {/* Right Column - All Transactions Section */}
+              {/* Middle Column - All Transactions Section */}
               <div className="space-y-8">
                 <TransactionSections 
                   transactions={transactions}
@@ -855,6 +844,20 @@ function AppContent() {
                   }}
                   onDeleteTransaction={handleDeleteTransaction}
                 />
+                
+                <SavingPlanner transactions={transactions} />
+                
+                <PredictionCard transactions={transactions} />
+              </div>
+
+              {/* Right Column - Overspending Section */}
+              <div className="space-y-8">
+                <SmartOverspendingAlerts 
+                  transactions={transactions}
+                  user={user}
+                />
+                
+                <PaymentReminders user={user} bankAccounts={bankAccounts} />
               </div>
             </div>
           </>
@@ -863,7 +866,7 @@ function AppContent() {
   };
 
   if (!isAuthenticated) {
-    return <SimpleAuth onAuthSuccess={handleAuthSuccess} />;
+    return <MinimalAuth onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (
