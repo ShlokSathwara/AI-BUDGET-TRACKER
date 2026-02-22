@@ -210,12 +210,29 @@ const WelcomeScreen = ({ onComplete, isAuthenticated }) => {
 
       {/* Footer with creator info */}
       <motion.footer 
-        className="absolute bottom-6 left-0 right-0 text-center text-gray-400 text-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1, duration: 0.6 }}
+        className="absolute bottom-6 left-0 right-0 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.5, duration: 0.8 }}
       >
-        <p>Made by Shlok Sathwara</p>
+        <motion.p 
+          className="text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+          animate={{ 
+            scale: [1, 1.05, 1],
+            textShadow: [
+              "0 0 5px rgba(96, 165, 250, 0.5)",
+              "0 0 20px rgba(96, 165, 250, 0.8)",
+              "0 0 5px rgba(96, 165, 250, 0.5)"
+            ]
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity,
+            repeatType: "reverse"
+          }}
+        >
+          Made by Shlok Sathwara
+        </motion.p>
       </motion.footer>
     </div>
   );
