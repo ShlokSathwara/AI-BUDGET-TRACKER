@@ -28,6 +28,7 @@ import DailyExpenseReminder from './components/DailyExpenseReminder';
 import { getTransactions } from './utils/api';
 import FamilyBudgetManager from './components/FamilyBudgetManager';
 import MinimalAuth from './components/MinimalAuth';
+import WelcomeScreen from './components/WelcomeScreen';
 
 // Animated Background Component
 const AnimatedBackground = () => {
@@ -285,6 +286,7 @@ function AppContent() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isChatVisible, setIsChatVisible] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const { isDarkMode } = useTheme();
 
   // Load user-specific settings
@@ -304,6 +306,9 @@ function AppContent() {
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedUser = localStorage.getItem('currentUser');
     
+    // Check if this is a first-time visitor (no stored authentication)
+    const isFirstVisit = !storedAuth && !storedUser;
+    
     // Keep user signed in if authentication data exists
     if (storedAuth === 'true' && storedUser) {
       const userData = JSON.parse(storedUser);
@@ -313,12 +318,16 @@ function AppContent() {
       loadUserTransactions(userData.id);
       // Load user-specific bank accounts
       loadUserBankAccounts(userData.id);
+    } else if (isFirstVisit) {
+      // Show welcome screen for first-time visitors
+      setShowWelcome(true);
     }
   }, []);
 
   const handleAuthSuccess = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
+    setShowWelcome(false); // Hide welcome screen after successful authentication
     setActiveTab('dashboard');
     // Load user-specific transactions
     loadUserTransactions(userData.id);
@@ -327,6 +336,7 @@ function AppContent() {
   const handleVerificationSuccess = (userData) => {
     setIsAuthenticated(true);
     setUser(userData);
+    setShowWelcome(false); // Hide welcome screen after successful verification
     setActiveTab('dashboard');
     // Load user-specific transactions
     loadUserTransactions(userData.id);
@@ -340,6 +350,7 @@ function AppContent() {
     setIsAuthenticated(false);
     setUser(null);
     setTransactions([]);
+    setShowWelcome(true); // Show welcome screen again after logout
     setActiveTab('dashboard');
   };
 
@@ -733,13 +744,15 @@ function AppContent() {
           <>
             <WeeklyReportScheduler user={user} transactions={transactions} settings={userSettings.notifications} />
             <DailyExpenseReminder user={user} transactions={transactions} settings={userSettings.notifications} />
-            {/* Welcome Section */}
+            {/* Dashboard Header */}
             <div className="text-center py-8 animate-elegant-entrance">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent mb-4">
-                Welcome back, {user.name}!
+                {transactions.length === 0 ? 'Welcome to AI Budget Tracker!' : `Hello, ${user.name}!`}
               </h1>
               <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-                Continue tracking your expenses with your personalized AI Budget Tracker
+                {transactions.length === 0 
+                  ? 'Get started by adding your first transaction below' 
+                  : 'Continue tracking your expenses with your personalized AI Budget Tracker'}
               </p>
               {transactions.length === 0 && (
                 <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg max-w-md mx-auto">
@@ -864,6 +877,18 @@ function AppContent() {
         );
     }
   };
+
+  if (!isAuthenticated && showWelcome) {
+    return (
+      <>
+        <WelcomeScreen 
+          onComplete={() => setShowWelcome(false)} 
+          isAuthenticated={isAuthenticated} 
+        />
+        <AnimatedBackground />
+      </>
+    );
+  }
 
   if (!isAuthenticated) {
     return <MinimalAuth onAuthSuccess={handleAuthSuccess} />;
