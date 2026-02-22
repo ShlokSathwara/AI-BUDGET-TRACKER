@@ -795,17 +795,10 @@ function AppContent() {
                   )}
                 </div>
 
-                {/* Analytics Charts */}
-                <Analytics transactions={transactions} bankAccounts={bankAccounts} />
               </div>
 
-              {/* Right Column - Bank Account Graphs, Payment Reminders, Saving Planner and Recent Transactions */}
+              {/* Right Column - Payment Reminders, Saving Planner and Recent Transactions */}
               <div className="space-y-8">
-                {/* Bank Account Graphs */}
-                <BankAccountGraphs 
-                  accounts={bankAccounts} 
-                  transactions={transactions}
-                />
 
                 {/* Payment Reminders */}
                 <PaymentReminders user={user} bankAccounts={bankAccounts} />
