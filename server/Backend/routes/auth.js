@@ -47,6 +47,7 @@ router.post('/login', async (req, res) => {
         name: sanitizedName,
         email: sanitizedEmail,
         emailVerified: true // No verification needed since no password
+        // Note: We're not storing a password since there is no password requirement
       });
       
       console.log('New user created:', user._id);
