@@ -117,11 +117,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
 
       if (isLoginMode) {
         // Login successful
-        if (data.requiresEmailVerification) {
-          setError('Please verify your email address before logging in. Check your inbox for verification email.');
-          return;
-        }
-        
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('currentUser', JSON.stringify(data.user));
@@ -130,10 +125,11 @@ const SimpleAuth = ({ onAuthSuccess }) => {
         // Success callback
         onAuthSuccess(data.user);
       } else {
-        // Signup successful - show verification message
-        setSuccess('Registration successful! Please check your email for verification link.');
+        // Signup successful
+        setSuccess('Registration successful! You can now log in.');
         // Switch to login mode
         setIsLoginMode(true);
+        setName('');
         setPassword('');
         setConfirmPassword('');
       }
@@ -354,20 +350,27 @@ const SimpleAuth = ({ onAuthSuccess }) => {
           </button>
         </div>
 
+        <div className="mt-6 text-center">
+          <button
+            onClick={toggleMode}
+            disabled={isLoading}
+            className="text-blue-400 hover:text-blue-300 text-sm font-medium disabled:opacity-50"
+          >
+            {isLoginMode 
+              ? "Don't have an account? Create one" 
+              : "Already have an account? Sign in"
+            }
+          </button>
+        </div>
+
         {isLoginMode && (
           <div className="mt-4 text-center">
             <button
-              onClick={() => {
-                if (email) {
-                  handleResendVerification();
-                } else {
-                  setError('Please enter your email first');
-                }
-              }}
-              disabled={isLoading || !email}
+              onClick={handleForgotPassword}
+              disabled={isLoading}
               className="text-blue-400 hover:text-blue-300 text-sm font-medium disabled:opacity-50"
             >
-              Didn't receive verification email? Resend
+              Forgot your password?
             </button>
           </div>
         )}
@@ -382,3 +385,46 @@ const SimpleAuth = ({ onAuthSuccess }) => {
 };
 
 export default SimpleAuth;
+
+// Forgot password function
+const handleForgotPassword = async () => {
+  const emailInput = prompt('Please enter your email address:');
+  
+  if (!emailInput) {
+    return; // User cancelled
+  }
+  
+  if (!validateEmail(emailInput)) {
+    alert('Please enter a valid email address');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: emailInput.trim().toLowerCase()
+      })
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (jsonError) {
+      console.error('JSON parsing error:', jsonError);
+      throw new Error('Invalid response from server');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send password reset email');
+    }
+
+    alert(data.message || 'Password reset link has been sent to your email!');
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    alert(err.message);
+  }
+};

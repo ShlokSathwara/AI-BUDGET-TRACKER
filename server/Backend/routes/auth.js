@@ -19,7 +19,7 @@ const {
 } = require('../middleware/security');
 const config = require('../config');
 
-// Register with email verification
+// Register without email verification
 router.post('/register', emailVerificationLimiter, async (req, res) => {
   try {
     console.log('Register endpoint hit with body:', req.body);
@@ -53,54 +53,26 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email: sanitizedEmail });
     if (existingUser) {
-      if (existingUser.emailVerified) {
-        console.log('User already exists with verified email:', sanitizedEmail);
-        return res.status(409).json({ error: 'User already exists with this email' });
-      } else {
-        // User exists but email not verified - allow re-registration
-        console.log('Deleting unverified user for re-registration:', existingUser._id);
-        await User.deleteOne({ _id: existingUser._id });
-      }
+      console.log('User already exists:', sanitizedEmail);
+      return res.status(409).json({ error: 'User already exists with this email' });
     }
     
     // Hash password
     const hash = await bcrypt.hash(sanitizedPassword, 12);
     
-    // Generate email verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    
-    // Create user
+    // Create user without email verification
     const user = await User.create({
       name: sanitizedName,
       email: sanitizedEmail,
       password: hash,
-      emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationExpires
+      emailVerified: true // Set to true by default since we're removing verification
     });
     
     console.log('User created:', user._id);
     
-    // Send verification email
-    const verificationLink = `${config.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${encodeURIComponent(sanitizedEmail)}`;
-    
-    const emailResult = await sendEmail(sanitizedEmail, 'verification', {
-      name: sanitizedName,
-      link: verificationLink
-    });
-    
-    console.log('Email result:', emailResult);
-    
-    if (!emailResult.success) {
-      // If email fails, delete the user
-      await User.deleteOne({ _id: user._id });
-      console.log('Email failed, user deleted:', user._id);
-      return res.status(500).json({ error: 'Failed to send verification email' });
-    }
-    
     res.status(201).json({ 
       success: true,
-      message: 'Registration successful! Please check your email for verification.',
+      message: 'Registration successful!',
       email: sanitizedEmail
     });
     
@@ -225,14 +197,14 @@ router.post('/resend-verification', emailVerificationLimiter, async (req, res) =
   }
 });
 
-// Resend verification email
-router.post('/resend-verification', emailVerificationLimiter, async (req, res) => {
+// Forgot password
+router.post('/forgot-password', emailVerificationLimiter, async (req, res) => {
   try {
-    console.log('Resend verification endpoint hit with body:', req.body);
+    console.log('Forgot password endpoint hit with body:', req.body);
     const { email } = req.body;
     
     if (!email) {
-      console.log('Missing email for resend verification');
+      console.log('Missing email for forgot password');
       return res.status(400).json({ error: 'Email is required' });
     }
     
@@ -240,7 +212,7 @@ router.post('/resend-verification', emailVerificationLimiter, async (req, res) =
     
     // Validate email format
     if (!validateEmail(sanitizedEmail)) {
-      console.log('Invalid email format for resend:', sanitizedEmail);
+      console.log('Invalid email format for forgot password:', sanitizedEmail);
       return res.status(400).json({ error: 'Please enter a valid email address' });
     }
     
@@ -248,54 +220,121 @@ router.post('/resend-verification', emailVerificationLimiter, async (req, res) =
     const user = await User.findOne({ email: sanitizedEmail });
     
     if (!user) {
-      console.log('No user found for resend verification:', sanitizedEmail);
-      return res.status(404).json({ error: 'User not found' });
+      console.log('No user found for forgot password:', sanitizedEmail);
+      // Return success message even if user doesn't exist to prevent email enumeration
+      return res.json({ 
+        success: true,
+        message: 'If an account exists with this email, a password reset link has been sent.' 
+      });
     }
     
-    // Check if email is already verified
-    if (user.emailVerified) {
-      console.log('User email already verified for resend:', user._id);
-      return res.status(400).json({ error: 'Email is already verified' });
-    }
+    // Generate password reset token
+    const resetToken = generateVerificationToken();
+    const resetExpires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
     
-    // Generate new verification token
-    const verificationToken = generateVerificationToken();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    
-    // Update user with new token
-    user.emailVerificationToken = verificationToken;
-    user.emailVerificationExpires = verificationExpires;
+    // Update user with reset token
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetExpires;
     await user.save();
     
-    // Send verification email
-    const verificationLink = `${config.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${encodeURIComponent(sanitizedEmail)}`;
+    // Send reset email
+    const resetLink = `${config.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}&email=${encodeURIComponent(sanitizedEmail)}`;
     
-    const emailResult = await sendEmail(sanitizedEmail, 'verification', {
+    const emailResult = await sendEmail(sanitizedEmail, 'passwordReset', {
       name: user.name,
-      link: verificationLink
+      link: resetLink
     });
     
-    console.log('Resend verification email result:', emailResult);
+    console.log('Forgot password email result:', emailResult);
     
     if (!emailResult.success) {
-      return res.status(500).json({ error: 'Failed to send verification email' });
+      // Even if email fails, return success to prevent email enumeration
+      console.log('Email failed but returning success to prevent enumeration');
+      return res.json({ 
+        success: true,
+        message: 'If an account exists with this email, a password reset link has been sent.' 
+      });
     }
     
     res.json({ 
       success: true,
-      message: 'Verification email has been sent! Please check your email.' 
+      message: 'If an account exists with this email, a password reset link has been sent.' 
     });
     
-    console.log('Resend verification response sent successfully');
+    console.log('Forgot password response sent successfully');
     
   } catch (err) {
-    console.error('Resend verification error:', err);
+    console.error('Forgot password error:', err);
     console.error('Error stack:', err.stack);
-    res.status(500).json({ error: 'Failed to resend verification email. Please try again.', details: err.message });
+    res.status(500).json({ error: 'Failed to process forgot password request. Please try again.', details: err.message });
   }
 });
 
-// Login with email verification check
+// Reset password
+router.post('/reset-password', async (req, res) => {
+  try {
+    console.log('Reset password endpoint hit with body:', req.body);
+    const { email, token, newPassword } = req.body;
+    
+    if (!email || !token || !newPassword) {
+      console.log('Missing required fields for reset password:', { hasEmail: !!email, hasToken: !!token, hasNewPassword: !!newPassword });
+      return res.status(400).json({ error: 'Email, token, and new password are required' });
+    }
+    
+    const sanitizedEmail = sanitizeInput(email.toLowerCase());
+    const sanitizedToken = sanitizeInput(token);
+    const sanitizedNewPassword = sanitizeInput(newPassword);
+    
+    // Validate email format
+    if (!validateEmail(sanitizedEmail)) {
+      console.log('Invalid email format for reset password:', sanitizedEmail);
+      return res.status(400).json({ error: 'Please enter a valid email address' });
+    }
+    
+    // Validate password strength
+    if (!validatePassword(sanitizedNewPassword)) {
+      console.log('New password does not meet requirements:', sanitizedNewPassword);
+      return res.status(400).json({ 
+        error: 'Password must be at least 8 characters with uppercase, lowercase, and number' 
+      });
+    }
+    
+    // Find user with reset token
+    const user = await User.findOne({ 
+      email: sanitizedEmail,
+      resetPasswordToken: sanitizedToken,
+      resetPasswordExpires: { $gt: new Date() } // Token not expired
+    });
+    
+    if (!user) {
+      console.log('Invalid or expired reset token for user:', sanitizedEmail);
+      return res.status(400).json({ error: 'Invalid or expired password reset token' });
+    }
+    
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(sanitizedNewPassword, 12);
+    
+    // Update user with new password and clear reset token
+    user.password = hashedPassword;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+    
+    res.json({ 
+      success: true,
+      message: 'Password has been reset successfully!' 
+    });
+    
+    console.log('Password reset response sent successfully');
+    
+  } catch (err) {
+    console.error('Reset password error:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Failed to reset password. Please try again.', details: err.message });
+  }
+});
+
+// Login without email verification check
 router.post('/login', authLimiter, accountLockout, async (req, res) => {
   try {
     console.log('Login endpoint hit with body:', req.body);
@@ -317,15 +356,6 @@ router.post('/login', authLimiter, accountLockout, async (req, res) => {
     if (!user) {
       console.log('No user found for email:', sanitizedEmail);
       return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    
-    // Check if email is verified
-    console.log('User email verified status:', user.emailVerified);
-    if (!user.emailVerified) {
-      return res.status(401).json({ 
-        error: 'Please verify your email address before logging in',
-        requiresEmailVerification: true
-      });
     }
     
     // Check if account is active
