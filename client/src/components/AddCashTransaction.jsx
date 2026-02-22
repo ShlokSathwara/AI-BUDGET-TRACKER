@@ -69,7 +69,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
       newErrors.description = 'Description is required';
     }
     
-    if (!bankAccount) {
+    if (!bankAccount && paymentMethod !== 'cash') {
       newErrors.bankAccount = 'Bank account is required';
     }
     
@@ -77,8 +77,8 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
       newErrors.paymentMethod = 'Please select a payment method';
     }
     
-    setTransactionErrors(newTransactionErrors);
-    return Object.keys(newTransactionErrors).length === 0;
+    setTransactionErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -103,8 +103,9 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
         type: 'debit',
         currency: 'INR',
         date: new Date().toISOString(),
-        bankAccountId: bankAccount || null,
-        paymentMethod: paymentMethod
+        bankAccountId: (paymentMethod === 'cash') ? null : bankAccount || null,
+        paymentMethod: paymentMethod,
+        mode: paymentMethod === 'cash' ? 'cash' : 'non-cash'
       };
       
       // Call the parent handler

@@ -488,8 +488,8 @@ function AppContent() {
         alert('Warning: Transaction saved temporarily but failed to save permanently.');
       }
       
-      // Update bank account balance if account selected
-      if (transactionWithUser.bankAccountId && Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+      // Update bank account balance if account selected and not cash transaction
+      if (transactionWithUser.bankAccountId && Array.isArray(bankAccounts) && bankAccounts.length > 0 && transactionWithUser.mode !== 'cash') {
         try {
           const amount = transactionWithUser.type === 'credit' 
             ? (transactionWithUser.amount || 0)
@@ -588,7 +588,7 @@ function AppContent() {
       }
 
       // Update bank account balances
-      if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+      if (Array.isArray(bankAccounts) && bankAccounts.length > 0 && updatedTx.mode !== 'cash') {
         // First, reverse the effect of the old transaction
         const oldTransaction = transactions.find(tx => tx._id === updatedTx._id);
         if (oldTransaction && oldTransaction.bankAccountId) {
@@ -665,7 +665,7 @@ function AppContent() {
       // Update bank account balance to reverse the transaction
       if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
         const deletedTransaction = transactions.find(tx => tx._id === transactionId);
-        if (deletedTransaction && deletedTransaction.bankAccountId) {
+        if (deletedTransaction && deletedTransaction.bankAccountId && deletedTransaction.mode !== 'cash') {
           const amount = deletedTransaction.type === 'credit' 
             ? -(deletedTransaction.amount || 0)  // Reverse the credit
             : (deletedTransaction.amount || 0);  // Reverse the debit
