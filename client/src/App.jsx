@@ -313,13 +313,21 @@ function AppContent() {
     
     // Keep user signed in if authentication data exists
     if (storedAuth === 'true' && storedUser) {
-      const userData = JSON.parse(storedUser);
-      setIsAuthenticated(true);
-      setUser(userData);
-      // Load user-specific transactions
-      loadUserTransactions(userData.id);
-      // Load user-specific bank accounts
-      loadUserBankAccounts(userData.id);
+      try {
+        const userData = JSON.parse(storedUser);
+        setIsAuthenticated(true);
+        setUser(userData);
+        // Load user-specific transactions
+        loadUserTransactions(userData.id);
+        // Load user-specific bank accounts
+        loadUserBankAccounts(userData.id);
+      } catch (error) {
+        console.error('Error parsing stored user data:', error);
+        // If there's an error parsing the stored data, clear it and show welcome screen
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('currentUser');
+        setShowWelcome(true);
+      }
     } else if (isFirstVisit) {
       // Show welcome screen for first-time visitors
       setShowWelcome(true);
@@ -349,6 +357,10 @@ function AppContent() {
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('token');
+    localStorage.removeItem('loginTimestamp');
+    localStorage.removeItem('transactions_local_user'); // Remove any legacy transaction storage
+    
     setIsAuthenticated(false);
     setUser(null);
     setTransactions([]);
@@ -365,7 +377,10 @@ function AppContent() {
       const storedTransactions = localStorage.getItem(userTransactionsKey);
       
       if (storedTransactions) {
-        setTransactions(JSON.parse(storedTransactions));
+        const parsedTransactions = JSON.parse(storedTransactions);
+        // Ensure it's an array, if not initialize as empty array
+        const transactionsArray = Array.isArray(parsedTransactions) ? parsedTransactions : [];
+        setTransactions(transactionsArray);
       } else {
         // If no stored transactions, initialize with empty array for new users
         setTransactions([]);
@@ -373,7 +388,11 @@ function AppContent() {
       }
     } catch (err) {
       console.error('Error loading user transactions:', err);
+      // Initialize with empty array if there's an error
       setTransactions([]);
+      // Create a fresh empty transaction array in localStorage
+      const userTransactionsKey = `transactions_${userId}`;
+      localStorage.setItem(userTransactionsKey, JSON.stringify([]));
     } finally {
       setLoading(false);
     }

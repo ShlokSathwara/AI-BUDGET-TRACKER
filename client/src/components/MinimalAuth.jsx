@@ -56,6 +56,9 @@ const MinimalAuth = ({ onAuthSuccess }) => {
       // Create a simple identifier instead of a full JWT to avoid decoding issues
       localStorage.setItem('token', `local_${userData.id}`);
       
+      // Set a timestamp for when the user logged in
+      localStorage.setItem('loginTimestamp', Date.now().toString());
+      
       // Success callback
       onAuthSuccess(userData);
       setSuccess('Successfully logged in!');
