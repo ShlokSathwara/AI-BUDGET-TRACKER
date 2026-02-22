@@ -11,25 +11,25 @@
   
   /* Light mode - keep current styling */
   body {
-    @apply bg-gradient-to-br from-blue-900 via-indigo-900 to-black text-white antialiased;
+    @apply bg-gradient-to-br from-blue-100 via-indigo-100 to-blue-200 text-gray-800 antialiased;
     background-attachment: fixed;
   }
   
-  /* Dark mode - much darker styling */
+  /* Dark mode - lightened styling */
   .dark body {
-    @apply bg-gradient-to-br from-black via-gray-900 to-gray-900 text-white antialiased;
+    @apply bg-gradient-to-br from-gray-700 via-gray-600 to-gray-700 text-white antialiased;
     background-attachment: fixed;
   }
   
   /* Dark mode enhanced glass effects */
   .dark .glass {
-    @apply bg-black/40 backdrop-blur-xl border border-white/5 rounded-xl;
+    @apply bg-gray-800/50 backdrop-blur-xl border border-gray-500/30 rounded-xl;
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
   
   .dark .glass-card {
-    @apply bg-gradient-to-br from-black/60 to-gray-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl;
+    @apply bg-gradient-to-br from-gray-700/60 to-gray-800/50 backdrop-blur-xl border border-gray-500/30 rounded-2xl shadow-2xl;
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
@@ -38,26 +38,26 @@
   .dark input, 
   .dark textarea, 
   .dark select {
-    @apply bg-black/30 border border-white/10 text-white placeholder-gray-500;
+    @apply bg-gray-700/60 border border-gray-500/50 text-white placeholder-gray-400;
   }
   
   .dark input:focus, 
   .dark textarea:focus, 
   .dark select:focus {
-    @apply outline-none ring-2 ring-blue-500 ring-opacity-50 border-blue-400/50;
+    @apply outline-none ring-2 ring-blue-400 ring-opacity-60 border-blue-300/60;
   }
   
   /* Dark mode scrollbar */
   .dark ::-webkit-scrollbar-track {
-    @apply bg-black/20 rounded-full;
+    @apply bg-gray-700/30 rounded-full;
   }
   
   .dark ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-gray-700 to-gray-600 rounded-full;
+    @apply bg-gradient-to-b from-gray-500 to-gray-400 rounded-full;
   }
   
   .dark ::-webkit-scrollbar-thumb:hover {
-    @apply from-gray-600 to-gray-500;
+    @apply from-gray-400 to-gray-300;
   }
 }
 
@@ -110,13 +110,13 @@
 
 /* Glassmorphism utilities */
 .glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl;
+  @apply bg-white/20 backdrop-blur-xl border border-white/20 rounded-xl;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
 
 .glass-card {
-  @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl;
+  @apply bg-gradient-to-br from-white/30 to-white/20 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -228,25 +228,25 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-white/5 rounded-full;
+  @apply bg-blue-200/30 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full;
+  @apply bg-gradient-to-b from-blue-300 to-indigo-400 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply from-blue-400 to-indigo-500;
+  @apply from-blue-200 to-indigo-300;
 }
 
 /* Input focus styles */
 input:focus, textarea:focus, select:focus {
-  @apply outline-none ring-2 ring-blue-500 ring-opacity-50;
+  @apply outline-none ring-2 ring-blue-400 ring-opacity-60;
 }
 
 /* Button hover effects */
 .btn-hover-glow:hover {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
 }
 
 /* Container */

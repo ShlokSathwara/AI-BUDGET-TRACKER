@@ -4,20 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Enhanced dark mode colors - much darker
+        // Lightened dark mode colors
         dark: {
-          900: '#000000', // Pure black
-          800: '#0a0a0a', // Very dark gray
-          700: '#121212', // Dark gray
-          600: '#1a1a1a', // Medium dark gray
-          500: '#2d2d2d', // Gray
+          900: '#1a202c', // Lighter dark blue-gray
+          800: '#2d3748', // Lighter gray-blue
+          700: '#4a5568', // Medium gray-blue
+          600: '#718096', // Medium-light gray-blue
+          500: '#a0aec0', // Light gray-blue
         }
       },
       backgroundColor: {
-        // Dark mode background gradients
-        'dark-gradient': 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #121212 100%)',
-        'dark-card': 'rgba(10, 10, 10, 0.8)',
-        'dark-glass': 'rgba(0, 0, 0, 0.25)',
+        // Lighter dark mode background gradients
+        'dark-gradient': 'linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #4a5568 100%)',
+        'dark-card': 'rgba(45, 55, 72, 0.8)',
+        'dark-glass': 'rgba(74, 85, 104, 0.4)',
       }
     }
   },
