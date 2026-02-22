@@ -216,13 +216,13 @@ const WelcomeScreen = ({ onComplete, isAuthenticated }) => {
         transition={{ delay: 1.5, duration: 0.8 }}
       >
         <motion.p 
-          className="text-lg md:text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+          className="text-lg md:text-xl font-bold bg-gradient-to-r from-green-300 via-emerald-400 to-teal-400 bg-clip-text text-transparent"
           animate={{ 
             scale: [1, 1.03, 1],
             textShadow: [
-              "0 0 3px rgba(96, 165, 250, 0.3)",
-              "0 0 10px rgba(96, 165, 250, 0.5)",
-              "0 0 3px rgba(96, 165, 250, 0.3)"
+              "0 0 3px rgba(74, 222, 128, 0.3)",
+              "0 0 10px rgba(74, 222, 128, 0.5)",
+              "0 0 3px rgba(74, 222, 128, 0.3)"
             ]
           }}
           transition={{ 
