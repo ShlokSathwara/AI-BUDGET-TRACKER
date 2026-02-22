@@ -1,12 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, Send, X, Bot, User, Sparkles } from 'lucide-react';
+import { 
+  MessageCircle, 
+  Send, 
+  X, 
+  User, 
+  Bot, 
+  TrendingUp, 
+  Wallet, 
+  BarChart3,
+  Lightbulb,
+  Calculator,
+  HelpCircle
+} from 'lucide-react';
 
-const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => {
+const AIChatAssistant = ({ transactions = [], bankAccounts = [], isVisible, setIsVisible }) => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! I'm your AI Budget Assistant 🤖 I can understand natural language! Try saying things like 'I bought groceries for ₹300' or 'Spent ₹250 on Zomato' or even 'Got ₹5000 salary this month'",
+      text: "Hello! I'm your AI Financial Advisor. I can help you with budgeting advice, spending analysis, savings recommendations, and financial planning. What would you like to discuss today?",
       sender: 'ai',
       timestamp: new Date()
     }
@@ -23,227 +35,129 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
     scrollToBottom();
   }, [messages]);
 
-  // Enhanced Indian Rupee categories and merchants with more comprehensive lists
-  const indianCategories = {
-    food: ['food', 'lunch', 'dinner', 'breakfast', 'snacks', 'restaurant', 'cafe', 'swiggy', 'zomato', 'dominos', 'mcdonalds', 'starbucks', 'pizza', 'burger', 'chinese', 'indian', 'biryani', 'sweets', 'ice cream', 'tea', 'coffee', 'junk food'],
-    transport: ['ola', 'uber', 'auto', 'taxi', 'bus', 'train', 'metro', 'petrol', 'diesel', 'fuel', 'gas', 'cab', 'rickshaw', 'flight', 'ticket', 'travel', 'commute'],
-    shopping: ['amazon', 'flipkart', 'myntra', 'ajio', 'big bazaar', 'd mart', 'reliance', 'clothes', 'shopping', 'clothing', 'fashion', 'retail', 'store', 'market', 'grocery', 'department', 'electronics', 'mobile', 'laptop', 'furniture'],
-    entertainment: ['movie', 'netflix', 'hotstar', 'disney', 'spotify', 'concert', 'theatre', 'games', 'gaming', 'music', 'bookmyshow', 'cinema', 'streaming', 'subscription', 'party', 'event', 'drama'],
-    utilities: ['electricity', 'water', 'internet', 'phone', 'jio', 'airtel', 'vodafone', 'bill', 'recharge', 'subscription', 'rent', 'emi', 'loan', 'insurance', 'maintenance'],
-    healthcare: ['doctor', 'medicine', 'hospital', 'pharmacy', 'apollo', 'fortis', 'clinic', 'consultation', 'medical', 'health', 'checkup', 'diagnostic', 'dental', 'eye care'],
-    education: ['school', 'college', 'books', 'course', 'tuition', 'byju', 'unacademy', 'education', 'learning', 'training', 'certificate', 'exam', 'fees', 'stationery'],
-    groceries: ['bigbasket', 'grofers', 'milk', 'vegetables', 'fruits', 'grocery', 'supermarket', 'local', 'produce', 'organic', 'vegetable', 'fruit', 'dairy'],
-    investment: ['stocks', 'mutual fund', 'sip', 'mf', 'equity', 'gold', 'silver', 'crypto', 'bitcoin', 'investment', 'portfolio', 'trading', 'brokerage'],
-    personal: ['salon', 'barber', 'spa', 'beauty', 'cosmetics', 'perfume', 'gift', 'flowers', 'personal', 'care', 'hygiene']
+  // Financial analysis functions
+  const analyzeSpending = () => {
+    if (!transactions || transactions.length === 0) {
+      return "I don't have enough transaction data to provide insights yet. Please add some transactions first!";
+    }
+
+    const now = new Date();
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    
+    const recentTransactions = transactions.filter(tx => 
+      new Date(tx.date) >= oneMonthAgo && tx.type === 'debit'
+    );
+    
+    const totalSpent = recentTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const avgDailySpending = totalSpent / 30;
+    
+    const categorySpending = {};
+    recentTransactions.forEach(tx => {
+      const category = tx.category || 'Other';
+      categorySpending[category] = (categorySpending[category] || 0) + (tx.amount || 0);
+    });
+    
+    const topCategory = Object.entries(categorySpending)
+      .sort(([,a], [,b]) => b - a)[0];
+    
+    return `Based on your recent spending (last 30 days):
+    • Total spent: ₹${totalSpent.toLocaleString()}
+    • Average daily spending: ₹${avgDailySpending.toFixed(2)}
+    • Your biggest spending category: ${topCategory ? `${topCategory[0]} (₹${topCategory[1].toLocaleString()})` : 'No clear pattern'}`;
   };
 
-  const indianMerchants = [
-    'Swiggy', 'Zomato', 'Ola', 'Uber', 'Amazon India', 'Flipkart', 'BigBasket',
-    'DMart', 'Reliance Fresh', 'McDonalds India', 'Starbucks India', 'Dominos Pizza',
-    'Airtel', 'Jio', 'Vodafone', 'Apollo Hospitals', 'Fortis Hospitals', 'BookMyShow',
-    'Netflix India', 'Hotstar', 'Spotify India', 'Byju\'s', 'Unacademy', 'Myntra',
-    'Ajio', 'Big Bazaar', 'Reliance Digital', 'Croma', 'Vijay Sales', 'Medlife',
-    'Pharmeasy', '1mg', 'Nykaa', 'Lenskart', 'BlueStone', 'CaratLane'
-  ];
+  const provideSavingsAdvice = () => {
+    if (!transactions || transactions.length === 0) {
+      return "Please add some transactions so I can analyze your spending patterns and provide personalized savings advice.";
+    }
 
-  // Enhanced amount extraction with multiple patterns
-  const extractAmount = (text) => {
-    // Look for various rupee amount patterns
-    const patterns = [
-      /(?:rs|rupees|₹)\s*(\d+(?:\.\d+)?)/i,
-      /(\d+(?:\.\d+)?)\s*(?:rs|rupees|₹)/i,
-      /paid\s+(\d+(?:\.\d+)?)/i,
-      /spent\s+(\d+(?:\.\d+)?)/i,
-      /cost\s+(\d+(?:\.\d+)?)/i,
-      /buy\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
-      /purchase\s+(?:for\s+)?(\d+(?:\.\d+)?)/i,
-      /invest\s+(\d+(?:\.\d+)?)/i
-    ];
+    const incomeTransactions = transactions.filter(tx => tx.type === 'credit');
+    const expenseTransactions = transactions.filter(tx => tx.type === 'debit');
     
-    for (const pattern of patterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const amount = parseFloat(match[1]);
-        if (!isNaN(amount) && amount > 0) {
-          return amount;
-        }
-      }
-    }
+    const totalIncome = incomeTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const totalExpenses = expenseTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
     
-    // Try to find standalone numbers that could be amounts
-    const numbers = text.match(/\b\d{2,}\b/g);
-    if (numbers) {
-      for (const num of numbers) {
-        const amount = parseFloat(num);
-        if (amount >= 10 && amount <= 100000) { // Reasonable expense range
-          return amount;
-        }
-      }
-    }
+    let advice = `Your current savings rate is ${savingsRate.toFixed(1)}%. `;
     
-    return null;
-  };
-
-  // Enhanced merchant extraction
-  const extractMerchant = (text) => {
-    const lowerText = text.toLowerCase();
-    
-    // Check for known Indian merchants
-    for (const indianMerchant of indianMerchants) {
-      if (lowerText.includes(indianMerchant.toLowerCase().split(' ')[0])) {
-        return indianMerchant;
-      }
-    }
-    
-    // Extract potential merchant from context
-    const merchantPatterns = [
-      /(?:at|from)\s+([A-Za-z\s]+)/i,
-      /paid\s+([A-Za-z\s]+)\s+for/i,
-      /bought\s+.*\s+from\s+([A-Za-z\s]+)/i,
-      /ordered\s+.*\s+from\s+([A-Za-z\s]+)/i
-    ];
-    
-    for (const pattern of merchantPatterns) {
-      const match = text.match(pattern);
-      if (match && match[1]) {
-        const extracted = match[1].trim();
-        if (extracted.length >= 2 && extracted.length <= 30) {
-          return extracted.charAt(0).toUpperCase() + extracted.slice(1).toLowerCase();
-        }
-      }
-    }
-    
-    // Extract capitalized words that could be merchants
-    const capitalizedWords = text.match(/[A-Z][a-z]{2,}/g);
-    if (capitalizedWords) {
-      for (const word of capitalizedWords) {
-        if (word.length >= 3 && word.length <= 20) {
-          return word;
-        }
-      }
-    }
-    
-    // Return first few words as fallback
-    const words = text.split(' ');
-    return words.slice(0, 3).join(' ').replace(/[^a-zA-Z\s]/g, '');
-  };
-
-  // Enhanced category extraction
-  const extractCategory = (text) => {
-    const textLower = text.toLowerCase();
-    
-    for (const [cat, keywords] of Object.entries(indianCategories)) {
-      if (keywords.some(keyword => textLower.includes(keyword))) {
-        return cat.charAt(0).toUpperCase() + cat.slice(1);
-      }
-    }
-    
-    // Context-based category detection
-    if (textLower.includes('salary') || textLower.includes('income') || textLower.includes('refund')) {
-      return 'Income';
-    }
-    
-    if (textLower.includes('investment') || textLower.includes('stocks') || textLower.includes('mutual') || textLower.includes('fund')) {
-      return 'Investment';
-    }
-    
-    // Default to Other if no category found
-    return 'Other';
-  };
-
-  const processAICommand = (text) => {
-    // Clean up the input
-    const cleanText = text.trim().toLowerCase();
-    
-    // Extract amount, merchant, and category
-    const amount = extractAmount(cleanText);
-    
-    if (amount) {
-      const merchant = extractMerchant(cleanText);
-      const category = extractCategory(cleanText);
-      
-      // Determine transaction type based on context
-      let type = 'debit';
-      if (cleanText.includes('received') || 
-          cleanText.includes('got') || 
-          cleanText.includes('income') ||
-          cleanText.includes('salary') ||
-          cleanText.includes('refund') ||
-          cleanText.includes('payment received')) {
-        type = 'credit';
-      }
-      
-      const transaction = {
-        amount: amount,
-        merchant: merchant,
-        description: text,
-        category: category,
-        type: type,
-        currency: 'INR'
-      };
-
-      return {
-        success: true,
-        transaction: transaction,
-        response: `✅ Added ${type === 'credit' ? 'income' : 'expense'}: ₹${amount} for ${category} at ${merchant}!`
-      };
+    if (savingsRate < 10) {
+      advice += "This is below the recommended 20%. Consider reducing discretionary spending in categories like dining, entertainment, or shopping.";
+    } else if (savingsRate < 20) {
+      advice += "You're doing well, but could aim for the 20% savings benchmark. Look for small optimizations in your monthly expenses.";
     } else {
-      // Check if it's a general query or instruction
-      if (cleanText.includes('hello') || cleanText.includes('hi') || cleanText.includes('hey')) {
-        return {
-          success: false,
-          response: 'Hello! I\'m your AI Budget Assistant. I can help you track expenses by understanding natural language. Just tell me about your purchases!'
-        };
-      } else if (cleanText.includes('help') || cleanText.includes('how') || cleanText.includes('what can')) {
-        return {
-          success: false,
-          response: 'I can understand natural language! Just tell me about your expenses like "I bought groceries for ₹300" or "Spent ₹250 on Zomato". I can also answer questions about your spending.'
-        };
-      } else if (cleanText.includes('expense') || cleanText.includes('spend') || cleanText.includes('money')) {
-        return {
-          success: false,
-          response: 'To add an expense, just tell me about it! For example: "I spent ₹500 on clothes" or "Paid ₹200 for movie tickets". I\'ll automatically categorize it for you.'
-        };
-      } else if (cleanText.includes('income') || cleanText.includes('salary') || cleanText.includes('earned')) {
-        return {
-          success: false,
-          response: 'To add income, tell me about it! For example: "Received ₹10,000 salary" or "Got ₹500 as gift". I\'ll record it as credit in your account.'
-        };
-      } else if (cleanText.includes('thank') || cleanText.includes('thanks')) {
-        return {
-          success: false,
-          response: 'You\'re welcome! Is there anything else I can help you with?'
-        };
-      } else if (cleanText.includes('bye') || cleanText.includes('goodbye')) {
-        return {
-          success: false,
-          response: 'Goodbye! Feel free to chat with me anytime you want to track expenses or ask about your finances.'
-        };
-      } else if (cleanText.includes('analyze') || cleanText.includes('report') || cleanText.includes('summary')) {
-        return {
-          success: false,
-          response: 'I can help analyze your spending! I can categorize expenses, identify trends, and provide insights. Just start tracking your expenses and I\'ll give you detailed analysis.'
-        };
-      } else if (cleanText.includes('budget') || cleanText.includes('save') || cleanText.includes('savings')) {
-        return {
-          success: false,
-          response: 'Budgeting is important! I can help you set savings goals, track your spending against budgets, and suggest ways to save money. Would you like to set up a savings goal?'
-        };
-      } else {
-        // Default response for unrecognized input that doesn't contain an amount
-        return {
-          success: false,
-          response: "I understand you're talking, but I couldn't detect a specific transaction. To add an expense or income, please mention an amount. For example: 'Spent ₹200 on food' or 'Received ₹1000 as gift'."
-        };
-      }
+      advice += "Excellent! You're maintaining a healthy savings rate. Consider investing some of these savings for better returns.";
     }
+    
+    return advice;
   };
 
-  const handleSendMessage = () => {
+  const accountAnalysis = (accountName) => {
+    if (!bankAccounts || bankAccounts.length === 0) {
+      return "You haven't added any bank accounts yet. Please add your accounts to get detailed analysis.";
+    }
+    
+    const account = bankAccounts.find(acc => 
+      acc.name.toLowerCase().includes(accountName.toLowerCase()) || 
+      acc.lastFourDigits === accountName
+    );
+    
+    if (!account) {
+      return `I couldn't find an account matching "${accountName}". Your accounts are: ${bankAccounts.map(acc => acc.name).join(', ')}`;
+    }
+    
+    const accountTransactions = transactions.filter(tx => tx.bankAccountId === account.id);
+    const income = accountTransactions.filter(tx => tx.type === 'credit').reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const expenses = accountTransactions.filter(tx => tx.type === 'debit').reduce((sum, tx) => sum + (tx.amount || 0), 0);
+    const balance = income - expenses;
+    
+    return `Analysis for ${account.name}:
+    • Current balance: ₹${balance.toLocaleString()}
+    • Total income: ₹${income.toLocaleString()}
+    • Total expenses: ₹${expenses.toLocaleString()}
+    • Net flow: ${balance >= 0 ? '+' : ''}₹${balance.toLocaleString()}`;
+  };
+
+  const generateResponse = async (userMessage) => {
+    const message = userMessage.toLowerCase();
+    
+    // Financial advice patterns
+    if (message.includes('spend') || message.includes('spending') || message.includes('expense')) {
+      return analyzeSpending();
+    }
+    
+    if (message.includes('save') || message.includes('savings') || message.includes('saving')) {
+      return provideSavingsAdvice();
+    }
+    
+    if (message.includes('account') || message.includes('balance')) {
+      const accountName = message.split('account')[1] || message.split('balance')[1] || '';
+      return accountAnalysis(accountName.trim());
+    }
+    
+    if (message.includes('budget') || message.includes('plan')) {
+      return "I'd be happy to help with budgeting! Consider following the 50/30/20 rule: 50% needs, 30% wants, 20% savings. Based on your income, I can help you calculate specific amounts for each category.";
+    }
+    
+    if (message.includes('invest') || message.includes('investment')) {
+      return "For investments, consider starting with emergency funds (3-6 months expenses), then low-risk options like mutual funds or index funds. Your risk tolerance and time horizon should guide your investment strategy.";
+    }
+    
+    // Default responses
+    const responses = [
+      "I'd be happy to help with that! Could you be more specific about what financial advice you need?",
+      "That's a great question! Let me know more details so I can provide personalized guidance.",
+      "I can help you with budgeting, saving, spending analysis, and financial planning. What area would you like to focus on?",
+      "For the best advice, I'll need to understand your specific situation. Can you tell me more about your financial goals?"
+    ];
+    
+    return responses[Math.floor(Math.random() * responses.length)];
+  };
+
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage = {
-      id: Date.now(),
+      id: messages.length + 1,
       text: inputValue,
       sender: 'user',
       timestamp: new Date()
@@ -253,28 +167,20 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI processing
-    setTimeout(() => {
-      const result = processAICommand(inputValue);
+    // Simulate AI thinking time
+    setTimeout(async () => {
+      const aiResponse = await generateResponse(inputValue);
       
       const aiMessage = {
-        id: Date.now() + 1,
-        text: result.response,
+        id: messages.length + 2,
+        text: aiResponse,
         sender: 'ai',
-        timestamp: new Date(),
-        transaction: result.success ? result.transaction : null
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
       setIsTyping(false);
-
-      // If successful, notify parent component
-      if (result.success && result.transaction) {
-        setTimeout(() => {
-          onTransactionDetected(result.transaction);
-        }, 500);
-      }
-    }, 1000);
+    }, 1000 + Math.random() * 1000);
   };
 
   const handleKeyPress = (e) => {
@@ -284,150 +190,152 @@ const AIChatAssistant = ({ onTransactionDetected, isVisible, setIsVisible }) => 
     }
   };
 
-  const quickCommands = [
-    "I spent ₹300 on groceries",
-    "Got ₹5000 salary this month",
-    "Paid ₹250 for Ola ride",
-    "Bought books for ₹150"
-  ];
+  if (!isVisible) {
+    return (
+      <button
+        onClick={() => setIsVisible(true)}
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 z-50"
+      >
+        <MessageCircle className="h-6 w-6" />
+      </button>
+    );
+  }
 
   return (
-    <>
-      {/* Chat Toggle Button */}
-      <AnimatePresence>
-        {!isVisible && (
-          <motion.button
-            onClick={() => setIsVisible(true)}
-            className="fixed bottom-6 left-6 z-40 p-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full shadow-2xl hover:from-purple-500 hover:to-indigo-500 transition-all duration-300 classy-button"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ y: 50 }}
+        animate={{ y: 0 }}
+        className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl w-full max-w-2xl h-[80vh] flex flex-col border border-white/10 shadow-2xl"
+      >
+        {/* Header */}
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
+              <Bot className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-white">AI Financial Advisor</h2>
+              <p className="text-sm text-gray-400">Always here to help with your finances</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsVisible(false)}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
-            <MessageCircle className="h-6 w-6 text-white" />
-          </motion.button>
-        )}
-      </AnimatePresence>
+            <X className="h-5 w-5 text-gray-400" />
+          </button>
+        </div>
 
-      {/* Chat Window */}
-      <AnimatePresence>
-        {isVisible && (
-          <motion.div
-            className="fixed bottom-6 left-6 z-50 w-80 h-96 bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl flex flex-col classy-element"
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center space-x-2">
-                <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg animate-classy-pulse">
-                  <Sparkles className="h-4 w-4 text-white" />
-                </div>
-                <h3 className="text-white font-semibold">AI Budget Assistant</h3>
-              </div>
-              <button
-                onClick={() => setIsVisible(false)}
-                className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <AnimatePresence>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <X className="h-4 w-4 text-gray-400" />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.map((message) => (
-                <motion.div
-                  key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className={`max-w-xs rounded-xl p-3 ${
-                    message.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                      : 'bg-white/10 text-white'
-                  }`}>
-                    <div className="flex items-start space-x-2">
-                      {message.sender === 'ai' && (
-                        <Bot className="h-4 w-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                      )}
-                      {message.sender === 'user' && (
-                        <User className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                      )}
-                      <div>
-                        <p className="text-sm">{message.text}</p>
-                        {message.transaction && (
-                          <div className="mt-2 p-2 bg-black/20 rounded-lg">
-                            <p className="text-xs text-green-400">
-                              ₹{message.transaction.amount} • {message.transaction.merchant}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md ${message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                  <div className={`p-2 rounded-full ${message.sender === 'user' ? 'bg-blue-600' : 'bg-purple-600'}`}>
+                    {message.sender === 'user' ? 
+                      <User className="h-4 w-4 text-white" /> : 
+                      <Bot className="h-4 w-4 text-white" />
+                    }
                   </div>
-                </motion.div>
-              ))}
-              
-              {isTyping && (
-                <motion.div
-                  className="flex justify-start"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <div className="bg-white/10 rounded-xl p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
+                  <div className={`p-3 rounded-2xl ${message.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-white/10 text-white'}`}>
+                    <p className="text-sm">{message.text}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
-                </motion.div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick Commands */}
-            <div className="px-4 py-2 border-t border-white/10">
-              <div className="flex flex-wrap gap-1 mb-2">
-                {quickCommands.map((command, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setInputValue(command)}
-                    className="text-xs bg-white/10 hover:bg-white/20 text-gray-300 px-2 py-1 rounded-lg transition-colors classy-button"
-                  >
-                    {command}
-                  </button>
-                ))}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex justify-start"
+            >
+              <div className="flex items-start space-x-2">
+                <div className="p-2 bg-purple-600 rounded-full">
+                  <Bot className="h-4 w-4 text-white" />
+                </div>
+                <div className="p-3 rounded-2xl bg-white/10">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </motion.div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
 
-            {/* Input */}
-            <div className="p-4 border-t border-white/10">
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 classy-element"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!inputValue.trim() || isTyping}
-                  className="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-500 hover:to-indigo-500 disabled:opacity-50 transition-all duration-300 classy-button"
-                >
-                  <Send className="h-4 w-4 text-white" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+        {/* Quick Actions */}
+        <div className="px-4 py-2 border-t border-white/10">
+          <div className="flex flex-wrap gap-2 mb-2">
+            <button
+              onClick={() => setInputValue('Analyze my spending patterns')}
+              className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              Analyze Spending
+            </button>
+            <button
+              onClick={() => setInputValue('How can I save more money?')}
+              className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              Savings Advice
+            </button>
+            <button
+              onClick={() => setInputValue('Tell me about my accounts')}
+              className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              Account Analysis
+            </button>
+            <button
+              onClick={() => setInputValue('Help with budget planning')}
+              className="text-xs px-2 py-1 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              Budget Planning
+            </button>
+          </div>
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-white/10">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask me anything about your finances..."
+              className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isTyping}
+              className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 disabled:opacity-50"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

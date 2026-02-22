@@ -12,6 +12,7 @@ import PaymentReminders from './components/PaymentReminders';
 import PredictionCard from './components/PredictionCard';
 import VoiceAssistant from './components/VoiceAssistant';
 import AIChatAssistant from './components/AIChatAssistant';
+import TransactionSections from './components/TransactionSections';
 import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
@@ -282,6 +283,7 @@ function AppContent() {
   const [goals, setGoals] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   const { isDarkMode } = useTheme();
 
   // Load user-specific settings
@@ -731,17 +733,17 @@ function AppContent() {
             {/* Summary Cards */}
             <SummaryCards transactions={transactions} />
 
-            {/* Main Content Grid - Single Column Layout */}
-            <div className="grid grid-cols-1 gap-6">
-              {/* Main Content - Bank Accounts, Add Transaction and Analytics */}
-              <div className="space-y-8">
+            {/* Main Content Grid - Restructured Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Left Column - Bank Accounts and Transaction Forms */}
+              <div className="lg:col-span-2 space-y-8">
                 {/* Bank Account Manager */}
                 <BankAccountManager 
                   user={user} 
                   onUpdateAccounts={setBankAccounts}
                 />
                 
-                {/* Transaction Type Tabs */}
+                {/* Transaction Type Tabs (without transaction tab) */}
                 <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element">
                   <div className="flex border-b border-white/10 mb-4">
                     <button
@@ -809,57 +811,28 @@ function AppContent() {
                     />
                   )}
                 </div>
+              </div>
 
-                {/* Recent Transactions */}
-                <div className="bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl p-6 classy-element">
-                  <h2 className="text-2xl font-bold mb-4">Recent Transactions</h2>
-                  {loading ? (
-                    <div className="text-center py-8">
-                      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                      <p>Loading transactions...</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {transactions.map((t) => (
-                        <div key={t._id} className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element flex justify-between items-center">
-                          <div className="flex-1">
-                            <div className="font-medium">{t.merchant}</div>
-                            <div className="text-sm text-gray-400">{t.category} • {new Date(t.createdAt || t.date).toLocaleDateString()}</div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className={`font-semibold ${t.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
-                              {t.type === 'credit' ? '+' : '-'}₹{t.amount.toFixed(2)}
-                            </div>
-                            <div className="flex space-x-1 ml-2">
-                              <button 
-                                onClick={() => {
-                                  setSelectedTransaction(t);
-                                  setShowEditModal(true);
-                                }}
-                                className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-colors"
-                                title="Edit transaction"
-                              >
-                                <Edit3 className="w-4 h-4 text-blue-300" />
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  if (window.confirm('Are you sure you want to delete this transaction?')) {
-                                    handleDeleteTransaction(t._id);
-                                  }
-                                }}
-                                className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
-                                title="Delete transaction"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-300" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {/* Middle Column - Payment Reminders (moved from right) */}
+              <div className="space-y-8">
+                <PaymentReminders user={user} bankAccounts={bankAccounts} />
+                
+                <SavingPlanner transactions={transactions} />
+                
+                <PredictionCard transactions={transactions} />
+              </div>
 
+              {/* Right Column - All Transactions Section */}
+              <div className="space-y-8">
+                <TransactionSections 
+                  transactions={transactions}
+                  bankAccounts={bankAccounts}
+                  onEditTransaction={(transaction) => {
+                    setSelectedTransaction(transaction);
+                    setShowEditModal(true);
+                  }}
+                  onDeleteTransaction={handleDeleteTransaction}
+                />
               </div>
             </div>
           </>
@@ -896,9 +869,10 @@ function AppContent() {
 
           {/* AI Chat Assistant */}
           <AIChatAssistant 
-            onTransactionDetected={handleAddTransaction}
-            isVisible={false}
-            setIsVisible={() => {}}
+            transactions={transactions}
+            bankAccounts={bankAccounts}
+            isVisible={isChatVisible}
+            setIsVisible={setIsChatVisible}
           />
           
           {/* Edit Transaction Modal */}
