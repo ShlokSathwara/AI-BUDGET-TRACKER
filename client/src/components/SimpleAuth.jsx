@@ -4,24 +4,13 @@ import { User, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 const SimpleAuth = ({ onAuthSuccess }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoginMode, setIsLoginMode] = useState(true);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const validatePassword = (password) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
   };
 
   const handleAuth = async () => {
@@ -45,44 +34,17 @@ const SimpleAuth = ({ onAuthSuccess }) => {
       return;
     }
 
-    if (!isLoginMode) {
-      // Signup validation
-      if (!password) {
-        setError('Please enter a password');
-        return;
-      }
-      
-      if (!validatePassword(password)) {
-        setError('Password must be at least 8 characters with uppercase, lowercase, and number');
-        return;
-      }
-      
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-    } else {
-      // Login validation
-      if (!password) {
-        setError('Please enter your password');
-        return;
-      }
-    }
-
     setIsLoading(true);
     
     try {
-      const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
-      
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim().toLowerCase(),
-          password: password
+          email: email.trim().toLowerCase()
         })
       });
 
@@ -91,12 +53,7 @@ const SimpleAuth = ({ onAuthSuccess }) => {
         let errorMessage = 'Authentication failed';
         try {
           const errorData = await response.json();
-          errorMessage = errorData.error || errorData.message || errorMessage;
-          // If details exist, append them for debugging
-          if (errorData.details) {
-            console.error('Server error details:', errorData.details);
-            errorMessage += ` (${errorData.details})`;
-          }
+          errorMessage = errorData.error || errorMessage;
         } catch (jsonError) {
           // If JSON parsing fails, use status text
           errorMessage = response.statusText || errorMessage;
@@ -115,24 +72,14 @@ const SimpleAuth = ({ onAuthSuccess }) => {
         throw new Error('Invalid response from server. Please try again.');
       }
 
-      if (isLoginMode) {
-        // Login successful
-        // Store token and user data
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('currentUser', JSON.stringify(data.user));
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        // Success callback
-        onAuthSuccess(data.user);
-      } else {
-        // Signup successful
-        setSuccess('Registration successful! You can now log in.');
-        // Switch to login mode
-        setIsLoginMode(true);
-        setName('');
-        setPassword('');
-        setConfirmPassword('');
-      }
+      // Login successful
+      // Store token and user data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      // Success callback
+      onAuthSuccess(data.user);
       
     } catch (err) {
       console.error('Auth error:', err);
@@ -148,14 +95,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
     }
   };
 
-  const toggleMode = () => {
-    setIsLoginMode(!isLoginMode);
-    setError('');
-    setSuccess('');
-    setPassword('');
-    setConfirmPassword('');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-blue-900 flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md border border-white/20 shadow-2xl">
@@ -164,10 +103,10 @@ const SimpleAuth = ({ onAuthSuccess }) => {
             <User className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            {isLoginMode ? 'Welcome Back' : 'Create Account'}
+            Welcome to Smart Budget Tracker
           </h1>
           <p className="text-gray-300">
-            {isLoginMode ? 'Sign in to your account' : 'Join Smart Budget Tracker'}
+            Enter your details to access your account
           </p>
         </div>
 
@@ -219,101 +158,21 @@ const SimpleAuth = ({ onAuthSuccess }) => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={isLoginMode ? "Enter your password" : "Create a strong password"}
-                className="w-full pl-4 pr-12 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                disabled={isLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {!isLoginMode && (
-              <p className="text-xs text-gray-400 mt-1">
-                Must contain 8+ characters, uppercase, lowercase, and number
-              </p>
-            )}
-          </div>
-
-          {!isLoginMode && (
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder="Confirm your password"
-                  className="w-full pl-4 pr-12 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-          )}
-
           <button
             onClick={handleAuth}
-            disabled={isLoading || !name.trim() || !email.trim() || !password || (!isLoginMode && password !== confirmPassword)}
+            disabled={isLoading || !name.trim() || !email.trim()}
             className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-blue-800 disabled:to-indigo-800 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center shadow-lg hover:shadow-xl"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                {isLoginMode ? 'Signing in...' : 'Creating account...'}
+                Signing in...
               </>
             ) : (
-              isLoginMode ? 'Sign In' : 'Create Account'
+              'Continue'
             )}
           </button>
         </div>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={toggleMode}
-            disabled={isLoading}
-            className="text-blue-400 hover:text-blue-300 text-sm font-medium disabled:opacity-50"
-          >
-            {isLoginMode 
-              ? "Don't have an account? Create one" 
-              : "Already have an account? Sign in"
-            }
-          </button>
-        </div>
-
-        {isLoginMode && (
-          <div className="mt-4 text-center">
-            <button
-              onClick={handleForgotPassword}
-              disabled={isLoading}
-              className="text-blue-400 hover:text-blue-300 text-sm font-medium disabled:opacity-50"
-            >
-              Forgot your password?
-            </button>
-          </div>
-        )}
 
         <div className="mt-6 text-center text-gray-400 text-xs">
           <p>Your data is securely stored and protected</p>
@@ -322,49 +181,6 @@ const SimpleAuth = ({ onAuthSuccess }) => {
       </div>
     </div>
   );
-};
-
-// Forgot password function
-const handleForgotPassword = async () => {
-  const emailInput = prompt('Please enter your email address:');
-  
-  if (!emailInput) {
-    return; // User cancelled
-  }
-  
-  if (!validateEmail(emailInput)) {
-    alert('Please enter a valid email address');
-    return;
-  }
-  
-  try {
-    const response = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: emailInput.trim().toLowerCase()
-      })
-    });
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('JSON parsing error:', jsonError);
-      throw new Error('Invalid response from server');
-    }
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to send password reset email');
-    }
-
-    alert(data.message || 'Password reset link has been sent to your email!');
-  } catch (err) {
-    console.error('Forgot password error:', err);
-    alert(err.message);
-  }
 };
 
 export default SimpleAuth;

@@ -6,11 +6,7 @@ import { useTheme } from 'react-native-paper';
 const LoginScreen = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoginMode, setIsLoginMode] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
 
   const theme = useTheme();
@@ -18,12 +14,6 @@ const LoginScreen = ({ onLogin }) => {
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
-  };
-
-  const validatePassword = (password) => {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
   };
 
   const validateForm = () => {
@@ -39,16 +29,6 @@ const LoginScreen = ({ onLogin }) => {
       newErrors.email = 'Please enter a valid email address';
     }
     
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (!isLoginMode && !validatePassword(password)) {
-      newErrors.password = 'Password must contain 8+ characters, uppercase, lowercase, and number';
-    }
-    
-    if (!isLoginMode && password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,17 +41,14 @@ const LoginScreen = ({ onLogin }) => {
     setIsLoading(true);
     
     try {
-      const endpoint = isLoginMode ? '/api/auth/login' : '/api/auth/register';
-      
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: name.trim(),
-          email: email.trim().toLowerCase(),
-          password: password
+          email: email.trim().toLowerCase()
         })
       });
 
@@ -99,36 +76,17 @@ const LoginScreen = ({ onLogin }) => {
         throw new Error('Invalid response from server. Please try again.');
       }
 
-      if (isLoginMode) {
-        // Login successful
-        // Store user data
-        const userData = {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          token: data.token,
-          emailVerified: data.user.emailVerified
-        };
-        
-        onLogin(userData);
-      } else {
-        // Signup successful
-        Alert.alert(
-          'Registration Successful',
-          'You can now log in to your account.',
-          [
-            { 
-              text: 'OK', 
-              onPress: () => {
-                setIsLoginMode(true);
-                setName('');
-                setPassword('');
-                setConfirmPassword('');
-              }
-            }
-          ]
-        );
-      }
+      // Login successful
+      // Store user data
+      const userData = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        token: data.token,
+        emailVerified: data.user.emailVerified
+      };
+      
+      onLogin(userData);
       
     } catch (err) {
       console.error('Auth error:', err);
@@ -136,13 +94,6 @@ const LoginScreen = ({ onLogin }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const toggleMode = () => {
-    setIsLoginMode(!isLoginMode);
-    setErrors({});
-    setPassword('');
-    setConfirmPassword('');
   };
 
   return (
@@ -154,10 +105,10 @@ const LoginScreen = ({ onLogin }) => {
         <Card style={styles.card}>
           <Card.Content>
             <Title style={styles.title}>
-              {isLoginMode ? 'Welcome Back' : 'Create Account'}
+              Welcome to Smart Budget Tracker
             </Title>
             <Text style={styles.subtitle}>
-              {isLoginMode ? 'Sign in to your account' : 'Join Smart Budget Tracker'}
+              Enter your details to access your account
             </Text>
             
             <TextInput
@@ -190,51 +141,6 @@ const LoginScreen = ({ onLogin }) => {
             />
             {errors.email && <HelperText type="error">{errors.email}</HelperText>}
             
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errors.password) setErrors(prev => ({ ...prev, password: '' }));
-              }}
-              style={styles.input}
-              mode="outlined"
-              placeholder={isLoginMode ? "Enter your password" : "Create a strong password"}
-              secureTextEntry={!showPassword}
-              error={!!errors.password}
-              right={
-                <TextInput.Icon 
-                  icon={showPassword ? "eye-off" : "eye"} 
-                  onPress={() => setShowPassword(!showPassword)}
-                />
-              }
-            />
-            {errors.password && <HelperText type="error">{errors.password}</HelperText>}
-            {!isLoginMode && (
-              <HelperText type="info">
-                Must contain 8+ characters, uppercase, lowercase, and number
-              </HelperText>
-            )}
-            
-            {!isLoginMode && (
-              <>
-                <TextInput
-                  label="Confirm Password"
-                  value={confirmPassword}
-                  onChangeText={(text) => {
-                    setConfirmPassword(text);
-                    if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
-                  }}
-                  style={styles.input}
-                  mode="outlined"
-                  placeholder="Confirm your password"
-                  secureTextEntry={!showPassword}
-                  error={!!errors.confirmPassword}
-                />
-                {errors.confirmPassword && <HelperText type="error">{errors.confirmPassword}</HelperText>}
-              </>
-            )}
-            
             <Button
               mode="contained"
               onPress={handleAuth}
@@ -243,33 +149,8 @@ const LoginScreen = ({ onLogin }) => {
               style={styles.loginButton}
               labelStyle={styles.buttonText}
             >
-              {isLoginMode ? 'Sign In' : 'Create Account'}
+              Continue
             </Button>
-            
-            <Button
-              mode="text"
-              onPress={toggleMode}
-              disabled={isLoading}
-              style={styles.toggleButton}
-              labelStyle={styles.toggleButtonText}
-            >
-              {isLoginMode 
-                ? "Don't have an account? Create one" 
-                : "Already have an account? Sign in"
-              }
-            </Button>
-
-            {isLoginMode && (
-              <Button
-                mode="text"
-                onPress={handleForgotPassword}
-                disabled={isLoading}
-                style={styles.forgotPasswordButton}
-                labelStyle={styles.toggleButtonText}
-              >
-                Forgot your password?
-              </Button>
-            )}
             
             <Text style={styles.securityNote}>
               Your data is securely stored and all communications are encrypted
@@ -279,60 +160,6 @@ const LoginScreen = ({ onLogin }) => {
       </ScrollView>
     </KeyboardAvoidingView>
   );
-};
-
-const handleForgotPassword = async () => {
-  const emailInput = await new Promise((resolve) => {
-    Alert.prompt(
-      'Forgot Password',
-      'Please enter your email address:',
-      [
-        { text: 'Cancel', onPress: () => resolve(null) },
-        { text: 'Submit', onPress: (value) => resolve(value) }
-      ],
-      'plain-text',
-      '',
-      'email-address'
-    );
-  });
-
-  if (!emailInput) {
-    return; // User cancelled
-  }
-
-  if (!validateEmail(emailInput)) {
-    Alert.alert('Error', 'Please enter a valid email address');
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: emailInput.trim().toLowerCase()
-      })
-    });
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('JSON parsing error:', jsonError);
-      throw new Error('Invalid response from server');
-    }
-
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to send password reset email');
-    }
-
-    Alert.alert('Success', data.message || 'Password reset link has been sent to your email!');
-  } catch (err) {
-    console.error('Forgot password error:', err);
-    Alert.alert('Error', err.message);
-  }
 };
 
 const styles = StyleSheet.create({
@@ -373,16 +200,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  toggleButton: {
-    marginTop: 10,
-  },
-  toggleButtonText: {
-    fontSize: 14,
-    color: '#6200ee',
-  },
-  forgotPasswordButton: {
-    marginTop: 5,
   },
   securityNote: {
     marginTop: 20,
