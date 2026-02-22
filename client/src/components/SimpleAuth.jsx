@@ -86,10 +86,28 @@ const SimpleAuth = ({ onAuthSuccess }) => {
         })
       });
 
-      const data = await response.json();
-
+      // Check if response is ok before parsing JSON
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed');
+        let errorMessage = 'Authentication failed';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (jsonError) {
+          // If JSON parsing fails, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Try to parse JSON response
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', response.headers);
+        throw new Error('Invalid response from server. Please try again.');
       }
 
       if (isLoginMode) {

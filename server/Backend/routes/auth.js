@@ -98,6 +98,8 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
       email: sanitizedEmail
     });
     
+    console.log('Registration response sent successfully');
+    
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Registration failed. Please try again.' });
@@ -279,6 +281,8 @@ router.post('/login', authLimiter, accountLockout, async (req, res) => {
         emailVerified: user.emailVerified
       }
     });
+    
+    console.log('Login response sent successfully');
     
   } catch (err) {
     console.error('Login error:', err);
