@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const backendApp = require('./Backend/routes');
+const mongoose = require('mongoose');
+const config = require('./Backend/config');
 
 const app = express();
 
@@ -14,6 +17,19 @@ db.init().catch(err => {
   console.error('Failed to initialize database:', err);
   process.exit(1);
 });
+
+// Connect to MongoDB for authentication
+mongoose.connect(config.MONGO_URI, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true 
+}).then(() => {
+  console.log('Connected to MongoDB for authentication');
+}).catch(err => {
+  console.error('Failed to connect to MongoDB:', err);
+});
+
+// Use backend routes for authentication
+app.use('/api', backendApp);
 
 app.get('/', (req, res) => {
   res.send('Smart Budget Tracker server is running');

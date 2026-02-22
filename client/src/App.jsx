@@ -17,6 +17,7 @@ import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
 import SimpleAuth from './components/SimpleAuth';
+import EmailVerification from './components/EmailVerification';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import SmartOverspendingAlerts from './components/SmartOverspendingAlerts';
 import SMSExpenseExtractor from './components/SMSExpenseExtractor';
@@ -305,6 +306,14 @@ function AppContent() {
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedUser = localStorage.getItem('currentUser');
     
+    // Check if we're on email verification page
+    const isEmailVerification = window.location.pathname === '/verify-email';
+    
+    if (isEmailVerification) {
+      // Don't auto-login on verification page
+      return;
+    }
+    
     // Keep user signed in if authentication data exists
     if (storedAuth === 'true' && storedUser) {
       const userData = JSON.parse(storedUser);
@@ -323,6 +332,16 @@ function AppContent() {
     setActiveTab('dashboard');
     // Load user-specific transactions
     loadUserTransactions(userData.id);
+  };
+
+  const handleVerificationSuccess = (userData) => {
+    setIsAuthenticated(true);
+    setUser(userData);
+    setActiveTab('dashboard');
+    // Load user-specific transactions
+    loadUserTransactions(userData.id);
+    // Redirect to dashboard
+    window.history.replaceState(null, '', '/');
   };
 
   const handleLogout = () => {
@@ -851,6 +870,12 @@ function AppContent() {
         );
     }
   };
+
+  const isEmailVerification = window.location.pathname === '/verify-email';
+
+  if (isEmailVerification) {
+    return <EmailVerification onVerificationSuccess={handleVerificationSuccess} />;
+  }
 
   if (!isAuthenticated) {
     return <SimpleAuth onAuthSuccess={handleAuthSuccess} />;

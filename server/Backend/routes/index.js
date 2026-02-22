@@ -5,13 +5,32 @@ const authRoutes = require('./auth');
 const txnRoutes = require('./transactions');
 const errorHandler = require('../middleware/errorHandler');
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
+const router = express.Router();
 
-app.use('/api/auth', authRoutes);
-app.use('/api/transactions', txnRoutes);
+// CORS configuration
+router.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:19006', // Expo default
+    'http://localhost:19000', // Expo dev tools
+    process.env.FRONTEND_URL,
+    process.env.MOBILE_APP_URL
+  ],
+  credentials: true
+}));
 
-app.use(errorHandler);
+router.use(bodyParser.json({ limit: '10mb' }));
+router.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
-module.exports = app;
+// Request logging
+router.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+router.use('/auth', authRoutes);
+router.use('/transactions', txnRoutes);
+
+router.use(errorHandler);
+
+module.exports = router;
