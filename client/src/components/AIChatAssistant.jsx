@@ -194,7 +194,7 @@ const AIChatAssistant = ({ transactions = [], bankAccounts = [], isVisible, setI
     return (
       <button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-6 left-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 z-50"
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:from-blue-500 hover:to-purple-500 transition-all duration-300 z-50"
       >
         <MessageCircle className="h-6 w-6" />
       </button>

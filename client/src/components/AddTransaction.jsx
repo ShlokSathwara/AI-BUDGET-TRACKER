@@ -127,6 +127,16 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
 
   const inputFields = [
     {
+      id: 'bankAccount',
+      label: 'Bank Account',
+      value: bankAccount,
+      onChange: setBankAccount,
+      icon: Wallet,
+      type: 'select',
+      error: errors.bankAccount,
+      options: [{ value: '', label: 'Select Account' }, ...getAccountOptions()]
+    },
+    {
       id: 'amount',
       label: 'Amount (₹)',
       value: amount,
@@ -161,16 +171,6 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       onChange: setCategory,
       placeholder: 'Food, Transport, Shopping, etc.',
       icon: Tag
-    },
-    {
-      id: 'bankAccount',
-      label: 'Bank Account',
-      value: bankAccount,
-      onChange: setBankAccount,
-      icon: Wallet,
-      type: 'select',
-      error: errors.bankAccount,
-      options: [{ value: '', label: 'Select Account' }, ...getAccountOptions()]
     },
     {
       id: 'paymentMethod',
@@ -208,7 +208,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {inputFields.map((field) => (
             <div key={field.id} className="space-y-3">
