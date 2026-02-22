@@ -196,7 +196,7 @@ const TransactionSections = ({ transactions = [], bankAccounts = [], onEditTrans
               const account = getAccountById(transaction.bankAccountId);
               return (
                 <motion.div
-                  key={transaction._id || transaction.id}
+                  key={transaction._id || transaction.id || `${transaction.merchant || 'unknown'}-${transaction.date || Date.now()}`}
                   className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element flex justify-between items-center hover:bg-white/10 transition-colors"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -244,7 +244,8 @@ const TransactionSections = ({ transactions = [], bankAccounts = [], onEditTrans
                       <button
                         onClick={() => {
                           if (window.confirm('Are you sure you want to delete this transaction?')) {
-                            onDeleteTransaction && onDeleteTransaction(transaction._id || transaction.id);
+                            const transactionId = transaction._id || transaction.id || `${transaction.merchant || 'unknown'}-${transaction.date || Date.now()}`;
+                            onDeleteTransaction && onDeleteTransaction(transactionId);
                           }
                         }}
                         className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
@@ -301,7 +302,7 @@ const TransactionSections = ({ transactions = [], bankAccounts = [], onEditTrans
                 
                 {accountTransactions.map((transaction) => (
                   <motion.div
-                    key={transaction._id || transaction.id}
+                    key={transaction._id || transaction.id || `${transaction.merchant || 'unknown'}-${transaction.date || Date.now()}`}
                     className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element flex justify-between items-center hover:bg-white/10 transition-colors"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -344,7 +345,8 @@ const TransactionSections = ({ transactions = [], bankAccounts = [], onEditTrans
                         <button
                           onClick={() => {
                             if (window.confirm('Are you sure you want to delete this transaction?')) {
-                              onDeleteTransaction && onDeleteTransaction(transaction._id || transaction.id);
+                              const transactionId = transaction._id || transaction.id || `${transaction.merchant || 'unknown'}-${transaction.date || Date.now()}`;
+                              onDeleteTransaction && onDeleteTransaction(transactionId);
                             }
                           }}
                           className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
