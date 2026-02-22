@@ -293,6 +293,8 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
       return { type: 'navigate', destination: 'analytics' };
     } else if (lowerText.includes('transactions') || lowerText.includes('history') || lowerText.includes('all transactions')) {
       return { type: 'navigate', destination: 'transactions' };
+    } else if (lowerText.includes('account transactions') || lowerText.includes('individual account') || lowerText.includes('specific account')) {
+      return { type: 'navigate', destination: 'account-transactions' };
     } else if (lowerText.includes('reports')) {
       return { type: 'navigate', destination: 'reports' };
     } else if (lowerText.includes('goals') || lowerText.includes('savings') || lowerText.includes('save money')) {
@@ -355,7 +357,7 @@ const VoiceAssistant = ({ onTransactionDetected, isListening, setIsListening, ba
       return;
     } else if (generalCmd.type === 'help') {
       setIsProcessing(false);
-      setError('I am your AI assistant! I can help you track expenses and income by voice. Say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment". I can also navigate to different sections like dashboard, analytics, transactions, accounts, goals, settings, etc.');
+      setError('I am your AI assistant! I can help you track expenses and income by voice. Say things like "Spent ₹250 on Swiggy from my savings account" or "Got ₹5000 salary via digital payment". I can also navigate to different sections like dashboard, analytics, transactions, account transactions, accounts, goals, settings, etc.');
       setTimeout(() => setError(''), 10000);
       return;
     }
