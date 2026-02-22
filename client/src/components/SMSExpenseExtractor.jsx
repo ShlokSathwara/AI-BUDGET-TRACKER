@@ -211,12 +211,12 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
+      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl classy-element"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8 pb-2 border-b border-white/10">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
             <MessageSquare className="h-5 w-5 text-white" />
@@ -253,10 +253,10 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
       </div>
 
       {/* Input Section - Conditional based on active tab */}
-      <div className="mb-6">
+      <div className="mb-8">
         {activeTab === 'sms' ? (
           <>
-            <div className="flex items-center space-x-2 mb-3">
+            <div className="flex items-center space-x-2 mb-4">
               <label className="text-sm font-medium text-gray-300">Bank SMS Message</label>
               <button
                 type="button"
@@ -273,12 +273,12 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                 onChange={(e) => setSmsInput(e.target.value)}
                 placeholder="Paste your bank SMS here (e.g., 'INR 1,234.56 debited from A/C XXXX1234 on 15/02/2024 at AMAZON.IN...')"
                 rows="3"
-                className="flex-1 px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="flex-1 px-4 py-4 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
               <motion.button
                 onClick={handleParseSMS}
                 disabled={isProcessing || !smsInput.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
+                className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -298,27 +298,27 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
           </>
         ) : (
           <>
-            <label className="text-sm font-medium text-gray-300 mb-2 block">Email Receipt</label>
+            <label className="text-sm font-medium text-gray-300 mb-3 block">Email Receipt</label>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               <input
                 type="text"
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
                 placeholder="Email Subject (optional)"
-                className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-4 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <textarea
                 value={emailBody}
                 onChange={(e) => setEmailBody(e.target.value)}
                 placeholder="Paste email body content here..."
                 rows="4"
-                className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                className="w-full px-4 py-4 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
               <motion.button
                 onClick={handleParseEmail}
                 disabled={isProcessing || (!emailSubject.trim() && !emailBody.trim())}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
+                className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -368,21 +368,21 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
 
       {/* Parsed Transactions */}
       {parsedTransactions.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-white mb-3 flex items-center space-x-2">
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
             <AlertTriangle className="h-5 w-5 text-yellow-400" />
             <span>Parsed Transactions ({parsedTransactions.length})</span>
           </h3>
-          
-          <div className="space-y-3">
+                
+          <div className="space-y-4">
             <AnimatePresence>
               {parsedTransactions.map((transaction, index) => {
                 const matchingAccount = findMatchingAccount(transaction.lastFourDigits);
-                                  
+                      
                 return (
                   <motion.div
                     key={transaction._id}
-                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4"
+                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
@@ -390,7 +390,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
+                        <div className="flex items-center space-x-2 mb-3">
                           <Wallet className="h-4 w-4 text-blue-400" />
                           <h4 className="font-semibold text-white">{transaction.merchant}</h4>
                           <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
@@ -400,8 +400,8 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                             {transaction.source?.toUpperCase() || 'SMS'}
                           </span>
                         </div>
-                                          
-                        <div className="grid grid-cols-2 gap-2 text-sm">
+                              
+                        <div className="grid grid-cols-2 gap-3 text-sm">
                           <div>
                             <span className="text-gray-400">Amount:</span>
                             <span className="text-white font-semibold ml-1">₹{transaction.amount.toLocaleString()}</span>
@@ -423,8 +423,8 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                             <span className="text-white ml-1">{new Date(transaction.date).toLocaleDateString()}</span>
                           </div>
                         </div>
-                                          
-                        <div className="mt-2">
+                              
+                        <div className="mt-3">
                           <span className="text-gray-400 text-xs">{transaction.source?.toUpperCase() || 'SMS'}:</span>
                           <p className="text-gray-300 text-xs mt-1 line-clamp-2">
                             {transaction.source === 'email' 
@@ -433,8 +433,8 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                           </p>
                         </div>
                       </div>
-                                        
-                      <div className="flex space-x-2 ml-4">
+                            
+                      <div className="flex space-x-3 ml-4">
                         <motion.button
                           onClick={() => handleAddTransaction(transaction)}
                           className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors"
@@ -444,7 +444,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                         >
                           <CheckCircle className="h-4 w-4" />
                         </motion.button>
-                                          
+                              
                         <motion.button
                           onClick={() => removeParsedTransaction(transaction._id)}
                           className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
@@ -465,13 +465,13 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
       )}
 
       {/* Instructions */}
-      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-        <h4 className="text-md font-semibold text-white mb-2 flex items-center space-x-2">
+      <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5">
+        <h4 className="text-md font-semibold text-white mb-3 flex items-center space-x-2">
           <FileText className="h-4 w-4 text-blue-400" />
           <span>How to Use</span>
         </h4>
         {activeTab === 'sms' ? (
-          <ul className="text-sm text-gray-300 space-y-1">
+          <ul className="text-sm text-gray-300 space-y-2">
             <li>• Copy and paste your bank SMS notification into the text box</li>
             <li>• The system will extract transaction details automatically</li>
             <li>• Matched with your bank account based on last 4 digits</li>
@@ -479,7 +479,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
             <li>• Supports major Indian banks (SBI, HDFC, ICICI, etc.)</li>
           </ul>
         ) : (
-          <ul className="text-sm text-gray-300 space-y-1">
+          <ul className="text-sm text-gray-300 space-y-2">
             <li>• Paste email subject and/or body content from receipt emails</li>
             <li>• The system will extract transaction details automatically</li>
             <li>• Works with common e-commerce platforms (Amazon, Flipkart, etc.)</li>

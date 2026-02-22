@@ -360,13 +360,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
-    marginTop: 16,
+    marginBottom: 12,
+    marginTop: 20,
     color: '#333',
   },
   radioContainer: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   radioItem: {
     flexDirection: 'row',
@@ -378,12 +378,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   categoryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   categoryButton: {
     margin: 4,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 32,
   },
   cancelButton: {
     flex: 0.45,
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
   },
   accountSelectorContainer: {
     position: 'relative',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   accountSelectorButton: {
     height: 50,

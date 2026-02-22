@@ -180,13 +180,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   settingItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   settingText: {
     flex: 1,
@@ -195,17 +195,17 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   settingDescription: {
     fontSize: 14,
     color: '#666',
   },
   divider: {
-    marginVertical: 8,
+    marginVertical: 12,
   },
   saveButton: {
-    marginTop: 20,
+    marginTop: 28,
     backgroundColor: '#6200ee',
   },
   saveButtonText: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resetButton: {
-    marginBottom: 10,
+    marginBottom: 16,
     borderColor: '#c62828',
   },
   resetButtonText: {

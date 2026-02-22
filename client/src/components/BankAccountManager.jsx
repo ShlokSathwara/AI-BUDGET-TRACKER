@@ -180,12 +180,12 @@ const BankAccountManager = ({ user, onUpdateAccounts }) => {
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element"
+      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl classy-element"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8 pb-2 border-b border-white/10">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
             <Wallet className="h-5 w-5 text-white" />
@@ -206,24 +206,24 @@ const BankAccountManager = ({ user, onUpdateAccounts }) => {
       </div>
 
       {/* Bank Account List */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <AnimatePresence>
           {accounts.length === 0 ? (
             <motion.div
-              className="text-center py-8"
+              className="text-center py-10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">No Bank Accounts</h3>
+              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-5" />
+              <h3 className="text-lg font-semibold text-white mb-3">No Bank Accounts</h3>
               <p className="text-gray-400">Add your first bank account to get started</p>
             </motion.div>
           ) : (
             accounts.map((account) => (
               <motion.div
                 key={account.id}
-                className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300"
+                className="flex items-center justify-between p-5 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
@@ -263,48 +263,48 @@ const BankAccountManager = ({ user, onUpdateAccounts }) => {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 w-full max-w-md"
+              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-8 w-full max-w-md"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
             >
-              <h3 className="text-xl font-bold text-white mb-4">Add New Bank Account</h3>
+              <h3 className="text-xl font-bold text-white mb-6">Add New Bank Account</h3>
               
-              <form onSubmit={handleAddAccount} className="space-y-4">
+              <form onSubmit={handleAddAccount} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Account Name</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Account Name</label>
                   <input
                     type="text"
                     value={newAccount.name}
                     onChange={(e) => setNewAccount({...newAccount, name: e.target.value})}
                     placeholder="e.g., Savings Account, Credit Card"
-                    className={`w-full px-4 py-2 bg-black/30 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                    className={`w-full px-4 py-4 bg-black/30 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                       errors.name ? 'border-red-500' : 'border-white/20'
                     }`}
                   />
                   {errors.name && (
-                    <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+                    <p className="text-red-400 text-sm mt-2">{errors.name}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Last 4 Digits</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">Last 4 Digits</label>
                   <input
                     type="text"
                     value={newAccount.lastFourDigits}
                     onChange={(e) => setNewAccount({...newAccount, lastFourDigits: e.target.value.replace(/\D/g, '').slice(0, 4)})}
                     placeholder="e.g., 1234"
                     maxLength="4"
-                    className={`w-full px-4 py-2 bg-black/30 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                    className={`w-full px-4 py-4 bg-black/30 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                       errors.lastFourDigits ? 'border-red-500' : 'border-white/20'
                     }`}
                   />
                   {errors.lastFourDigits && (
-                    <p className="text-red-400 text-sm mt-1">{errors.lastFourDigits}</p>
+                    <p className="text-red-400 text-sm mt-2">{errors.lastFourDigits}</p>
                   )}
                 </div>
 
-                <div className="flex space-x-3 mt-6">
+                <div className="flex space-x-4 mt-8">
                   <button
                     type="button"
                     onClick={() => {
@@ -312,13 +312,13 @@ const BankAccountManager = ({ user, onUpdateAccounts }) => {
                       setNewAccount({ name: '', lastFourDigits: '' });
                       setErrors({});
                     }}
-                    className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                    className="flex-1 px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition-all"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-lg transition-all"
                   >
                     Add Account
                   </button>
@@ -331,10 +331,10 @@ const BankAccountManager = ({ user, onUpdateAccounts }) => {
 
       {/* Reset Accounts Button */}
       {accounts.length > 0 && (
-        <div className="mt-6 pt-4 border-t border-white/10">
+        <div className="mt-8 pt-6 border-t border-white/10">
           <button
             onClick={resetAllAccounts}
-            className="w-full px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
+            className="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg transition-all duration-300 flex items-center justify-center space-x-2"
           >
             <X className="h-4 w-4" />
             <span>Reset All Bank Accounts</span>

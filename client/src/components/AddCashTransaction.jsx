@@ -144,12 +144,12 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8 pb-2 border-b border-white/10">
         <h2 className="text-xl font-bold text-white">Add New Expense</h2>
         <div className="flex items-center space-x-2">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
@@ -160,14 +160,14 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
       </div>
 
       {/* Bank Account Selection Section */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
+      <div className="mb-8 pb-6 border-b border-white/10">
+        <h3 className="text-lg font-semibold text-white mb-6 flex items-center space-x-2">
           <Wallet className="h-5 w-5" />
           <span>Select Bank Account</span>
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <Wallet className="h-4 w-4" />
               <span>Bank Account *</span>
@@ -175,7 +175,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             <select
               value={bankAccount}
               onChange={(e) => setBankAccount(e.target.value)}
-              className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+              className={`w-full px-4 py-4 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                 transactionErrors.bankAccount ? 'border-red-500' : 'border-white/20'
               }`}
             >
@@ -191,11 +191,11 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             )}
           </div>
           
-          <div className="space-y-2 flex items-end">
+          <div className="space-y-3 flex items-end">
             <button
               type="button"
               onClick={() => setShowAccountForm(true)}
-              className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-500 hover:to-emerald-500 transition-all duration-300 flex items-center justify-center space-x-2"
+              className="w-full px-4 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-500 hover:to-emerald-500 transition-all duration-300 flex items-center justify-center space-x-2"
             >
               <Plus className="h-4 w-4" />
               <span>Add New Account</span>
@@ -278,12 +278,12 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
         </motion.div>
       )}
 
-      <hr className="border-white/20 my-6" />
+      <hr className="border-white/20 my-8" />
 
       {/* Transaction Details Section */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <IndianRupee className="h-4 w-4" />
               <span>Amount (₹) *</span>
@@ -293,7 +293,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
-              className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+              className={`w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                 transactionErrors.amount ? 'border-red-500' : 'border-white/10'
               }`}
             />
@@ -302,7 +302,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <Store className="h-4 w-4" />
               <span>Merchant/Place *</span>
@@ -312,7 +312,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
               value={merchant}
               onChange={(e) => setMerchant(e.target.value)}
               placeholder="Where did you spend?"
-              className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+              className={`w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                 transactionErrors.merchant ? 'border-red-500' : 'border-white/10'
               }`}
             />
@@ -321,7 +321,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <FileText className="h-4 w-4" />
               <span>Description *</span>
@@ -331,7 +331,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="What did you buy?"
-              className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+              className={`w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                 transactionErrors.description ? 'border-red-500' : 'border-white/10'
               }`}
             />
@@ -340,7 +340,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <Tag className="h-4 w-4" />
               <span>Category</span>
@@ -350,11 +350,11 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               placeholder="Food, Transport, Shopping, etc."
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+              className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <label className="text-sm text-gray-300 flex items-center space-x-2">
               <CreditCard className="h-4 w-4" />
               <span>Payment Method *</span>
@@ -362,7 +362,7 @@ const AddCashTransaction = ({ onAdd, accounts = [] }) => {
             <select
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+              className={`w-full px-4 py-4 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                 transactionErrors.paymentMethod ? 'border-red-500' : 'border-white/20'
               }`}
             >

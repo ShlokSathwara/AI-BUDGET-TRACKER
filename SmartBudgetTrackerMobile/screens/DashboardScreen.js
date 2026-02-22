@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   transactionsList: {
-    marginTop: 8,
+    marginTop: 16,
   },
   transactionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
@@ -309,12 +309,12 @@ const styles = StyleSheet.create({
   merchant: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   category: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   date: {
     fontSize: 12,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: 'row',
-    margin: 16,
+    margin: 20,
     justifyContent: 'space-between',
   },
   actionButton: {

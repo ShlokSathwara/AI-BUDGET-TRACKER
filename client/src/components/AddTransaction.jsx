@@ -182,12 +182,12 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
 
   return (
     <motion.div
-      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl"
+      className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8 pb-2 border-b border-white/10">
         <h2 className="text-xl font-bold text-white">Add New Expense</h2>
         <div className="flex items-center space-x-2">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg">
@@ -198,9 +198,9 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {inputFields.map((field) => (
-            <div key={field.id} className="space-y-2">
+            <div key={field.id} className="space-y-3">
               <label className="text-sm text-gray-300 flex items-center space-x-2">
                 <field.icon className="h-4 w-4" />
                 <span>{field.label}</span>
@@ -209,7 +209,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
                 <select
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
-                  className={`w-full px-4 py-3 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                  className={`w-full px-4 py-4 bg-black/30 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                     field.error ? 'border-red-500' : 'border-white/20'
                   }`}
                 >
@@ -225,7 +225,7 @@ const AddTransaction = ({ onAdd, accounts = [] }) => {
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
                   placeholder={field.placeholder}
-                  className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
+                  className={`w-full px-4 py-4 bg-white/5 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300 ${
                     field.error ? 'border-red-500' : 'border-white/10'
                   }`}
                 />
