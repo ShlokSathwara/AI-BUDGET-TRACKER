@@ -280,7 +280,7 @@ function AppContent() {
   const [loading, setLoading] = useState(false);
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeTransactionTab, setActiveTransactionTab] = useState('expense'); // 'expense', 'credit', 'cash', 'overspending'
+  const [activeTransactionTab, setActiveTransactionTab] = useState('expense'); // 'expense', 'credit', 'cash'
   const [bankAccounts, setBankAccounts] = useState([]);
   const [goals, setGoals] = useState([]);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -776,7 +776,7 @@ function AppContent() {
                   onUpdateAccounts={setBankAccounts}
                 />
                 
-                {/* Transaction Type Tabs (without overspending tab) */}
+                {/* Transaction Type Tabs */}
                 <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl classy-element">
                   <div className="flex border-b border-white/10 mb-4">
                     <button
@@ -809,16 +809,6 @@ function AppContent() {
                     >
                       Cash
                     </button>
-                    <button
-                      className={`px-4 py-2 font-medium text-sm ${
-                        activeTransactionTab === 'overspending' 
-                          ? 'text-white border-b-2 border-red-500' 
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                      onClick={() => setActiveTransactionTab('overspending')}
-                    >
-                      Overspending
-                    </button>
                   </div>
 
                   {/* Transaction Forms */}
@@ -832,15 +822,10 @@ function AppContent() {
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
                     />
-                  ) : activeTransactionTab === 'cash' ? (
+                  ) : (
                     <AddCashTransaction 
                       onAdd={handleAddTransaction}
                       accounts={bankAccounts}
-                    />
-                  ) : (
-                    <SmartOverspendingAlerts 
-                      transactions={transactions}
-                      user={user}
                     />
                   )}
                 </div>
