@@ -17,7 +17,6 @@ import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
 import SimpleAuth from './components/SimpleAuth';
-import EmailVerification from './components/EmailVerification';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import SmartOverspendingAlerts from './components/SmartOverspendingAlerts';
 import SMSExpenseExtractor from './components/SMSExpenseExtractor';
@@ -305,14 +304,6 @@ function AppContent() {
   useEffect(() => {
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedUser = localStorage.getItem('currentUser');
-    
-    // Check if we're on email verification page
-    const isEmailVerification = window.location.pathname === '/verify-email';
-    
-    if (isEmailVerification) {
-      // Don't auto-login on verification page
-      return;
-    }
     
     // Keep user signed in if authentication data exists
     if (storedAuth === 'true' && storedUser) {
@@ -870,12 +861,6 @@ function AppContent() {
         );
     }
   };
-
-  const isEmailVerification = window.location.pathname === '/verify-email';
-
-  if (isEmailVerification) {
-    return <EmailVerification onVerificationSuccess={handleVerificationSuccess} />;
-  }
 
   if (!isAuthenticated) {
     return <SimpleAuth onAuthSuccess={handleAuthSuccess} />;
