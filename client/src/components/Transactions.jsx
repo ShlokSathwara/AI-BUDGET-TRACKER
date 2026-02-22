@@ -6,6 +6,8 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'week', 'month', 'year'
   const [typeFilter, setTypeFilter] = useState('all'); // 'all', 'debit', 'credit'
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [selectedAccountId, setSelectedAccountId] = useState('all'); // 'all' for all transactions, or specific account id
+  const [viewMode, setViewMode] = useState('all'); // 'all' for all transactions, 'account' for specific account
 
   // Get unique categories for filter dropdown
   const categories = useMemo(() => {
@@ -15,9 +17,14 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
     return ['Uncategorized', ...Array.from(new Set(allCategories))];
   }, [transactions]);
 
-  // Filter transactions based on selected filters
+  // Filter transactions based on selected filters and account
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
+
+    // Apply account filter if specific account is selected
+    if (selectedAccountId !== 'all') {
+      filtered = filtered.filter(tx => tx.bankAccountId === selectedAccountId);
+    }
 
     // Apply date filter
     if (filter !== 'all') {
@@ -58,7 +65,7 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return filtered;
-  }, [transactions, filter, typeFilter, categoryFilter]);
+  }, [transactions, selectedAccountId, filter, typeFilter, categoryFilter]);
 
   // Group transactions by date
   const groupedTransactions = useMemo(() => {
@@ -116,6 +123,12 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
     }, { income: 0, expense: 0 });
   }, [filteredTransactions]);
 
+  // Get selected account details if in account view mode
+  const selectedAccountDetails = useMemo(() => {
+    if (selectedAccountId === 'all') return null;
+    return bankAccounts.find(acc => acc.id === selectedAccountId);
+  }, [selectedAccountId, bankAccounts]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -127,8 +140,14 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
       >
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-2">All Transactions</h1>
-            <p className="text-gray-300">View and manage all your transactions</p>
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {selectedAccountId === 'all' ? 'All Transactions' : `Account Transactions - ${selectedAccountDetails?.name || 'Account'}`}
+            </h1>
+            <p className="text-gray-300">
+              {selectedAccountId === 'all' 
+                ? 'View and manage all your transactions' 
+                : `View transactions for ${selectedAccountDetails?.name || 'selected account'}`}
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-center">
@@ -148,46 +167,113 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-300">Filter by:</span>
+        {/* Account Selection and Filters */}
+        <div className="space-y-4">
+          {/* Account Selection */}
+          <div>
+            <label className="block text-sm text-gray-300 mb-2 flex items-center space-x-2">
+              <Wallet className="h-4 w-4" />
+              <span>Select Account (Optional)</span>
+            </label>
+            <select
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+            >
+              <option value="all">All Accounts</option>
+              {bankAccounts.map(account => (
+                <option key={account.id} value={account.id}>
+                  {account.name} {account.lastFourDigits ? `(****${account.lastFourDigits})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
-          
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Time</option>
-            <option value="week">Last Week</option>
-            <option value="month">Last Month</option>
-            <option value="year">Last Year</option>
-          </select>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Types</option>
-            <option value="credit">Income</option>
-            <option value="debit">Expense</option>
-          </select>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center space-x-2">
+              <Filter className="h-4 w-4 text-gray-400" />
+              <span className="text-sm text-gray-300">Filter by:</span>
+            </div>
+            
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Time</option>
+              <option value="week">Last Week</option>
+              <option value="month">Last Month</option>
+              <option value="year">Last Year</option>
+            </select>
 
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
-            ))}
-          </select>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="credit">Income</option>
+              <option value="debit">Expense</option>
+            </select>
+
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Categories</option>
+              {categories.map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </motion.div>
+
+      {/* Account Summary (only shown when specific account is selected) */}
+      {selectedAccountDetails && (
+        <motion.div 
+          className="bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-xl"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-white">{selectedAccountDetails.name}</h3>
+              <p className="text-gray-400">Current Balance: ₹{selectedAccountDetails.balance?.toLocaleString() || 'N/A'}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-400">Account Number</p>
+              <p className="text-white font-mono">{selectedAccountDetails.accountNumber || selectedAccountDetails.lastFourDigits || 'N/A'}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-white/10">
+            <div className="text-center">
+              <div className="flex items-center space-x-2 text-green-400">
+                <TrendingUp className="h-5 w-5" />
+                <span className="text-sm">Income</span>
+              </div>
+              <p className="text-xl font-bold text-white">₹{totals.income.toLocaleString()}</p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center space-x-2 text-red-400">
+                <TrendingDown className="h-5 w-5" />
+                <span className="text-sm">Expense</span>
+              </div>
+              <p className="text-xl font-bold text-white">₹{totals.expense.toLocaleString()}</p>
+            </div>
+            <div className="text-center">
+              <div className="text-sm text-gray-400">Net</div>
+              <p className={`text-xl font-bold ${totals.income - totals.expense >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                ₹{(totals.income - totals.expense).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Transactions List */}
       <div className="space-y-6">
@@ -198,8 +284,14 @@ const Transactions = ({ transactions = [], bankAccounts = [] }) => {
             animate={{ opacity: 1 }}
           >
             <Clock className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">No transactions found</h3>
-            <p className="text-gray-500">Try changing your filters or add some transactions</p>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">
+              {selectedAccountId === 'all' ? 'No transactions found' : 'No transactions for this account'}
+            </h3>
+            <p className="text-gray-500">
+              {selectedAccountId === 'all' 
+                ? 'Try changing your filters or add some transactions' 
+                : 'This account has no transactions for the selected period'}
+            </p>
           </motion.div>
         ) : (
           Object.keys(groupedTransactions).map(date => (
