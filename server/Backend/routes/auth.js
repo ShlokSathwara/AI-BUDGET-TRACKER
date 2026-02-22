@@ -27,6 +27,7 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     
     // Input validation
     if (!name || !email || !password) {
+      console.log('Missing required fields:', { hasName: !!name, hasEmail: !!email, hasPassword: !!password });
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
     
@@ -37,11 +38,13 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     
     // Validate email format
     if (!validateEmail(sanitizedEmail)) {
+      console.log('Invalid email format:', sanitizedEmail);
       return res.status(400).json({ error: 'Please enter a valid email address' });
     }
     
     // Validate password strength
     if (!validatePassword(sanitizedPassword)) {
+      console.log('Password does not meet requirements:', sanitizedPassword);
       return res.status(400).json({ 
         error: 'Password must be at least 8 characters with uppercase, lowercase, and number' 
       });
@@ -51,9 +54,11 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     const existingUser = await User.findOne({ email: sanitizedEmail });
     if (existingUser) {
       if (existingUser.emailVerified) {
+        console.log('User already exists with verified email:', sanitizedEmail);
         return res.status(409).json({ error: 'User already exists with this email' });
       } else {
         // User exists but email not verified - allow re-registration
+        console.log('Deleting unverified user for re-registration:', existingUser._id);
         await User.deleteOne({ _id: existingUser._id });
       }
     }
@@ -89,6 +94,7 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     if (!emailResult.success) {
       // If email fails, delete the user
       await User.deleteOne({ _id: user._id });
+      console.log('Email failed, user deleted:', user._id);
       return res.status(500).json({ error: 'Failed to send verification email' });
     }
     
@@ -102,7 +108,8 @@ router.post('/register', emailVerificationLimiter, async (req, res) => {
     
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Registration failed. Please try again.' });
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Registration failed. Please try again.', details: err.message });
   }
 });
 
@@ -221,9 +228,11 @@ router.post('/resend-verification', emailVerificationLimiter, async (req, res) =
 // Login with email verification check
 router.post('/login', authLimiter, accountLockout, async (req, res) => {
   try {
+    console.log('Login endpoint hit with body:', req.body);
     const { email, password } = req.body;
     
     if (!email || !password) {
+      console.log('Missing login credentials:', { hasEmail: !!email, hasPassword: !!password });
       return res.status(400).json({ error: 'Email and password are required' });
     }
     
@@ -233,9 +242,10 @@ router.post('/login', authLimiter, accountLockout, async (req, res) => {
     // Find user
     const user = await User.findOne({ email: sanitizedEmail });
     
-    console.log('User found for login:', user);
+    console.log('User found for login:', user ? user._id : 'null');
     
     if (!user) {
+      console.log('No user found for email:', sanitizedEmail);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
@@ -257,6 +267,7 @@ router.post('/login', authLimiter, accountLockout, async (req, res) => {
     const isPasswordValid = await bcrypt.compare(sanitizedPassword, user.password);
     
     if (!isPasswordValid) {
+      console.log('Invalid password for user:', user._id);
       await updateLoginAttempts(user, false);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -286,7 +297,8 @@ router.post('/login', authLimiter, accountLockout, async (req, res) => {
     
   } catch (err) {
     console.error('Login error:', err);
-    res.status(500).json({ error: 'Login failed. Please try again.' });
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Login failed. Please try again.', details: err.message });
   }
 });
 

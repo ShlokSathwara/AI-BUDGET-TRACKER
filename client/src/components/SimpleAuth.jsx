@@ -91,7 +91,12 @@ const SimpleAuth = ({ onAuthSuccess }) => {
         let errorMessage = 'Authentication failed';
         try {
           const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
+          errorMessage = errorData.error || errorData.message || errorMessage;
+          // If details exist, append them for debugging
+          if (errorData.details) {
+            console.error('Server error details:', errorData.details);
+            errorMessage += ` (${errorData.details})`;
+          }
         } catch (jsonError) {
           // If JSON parsing fails, use status text
           errorMessage = response.statusText || errorMessage;
