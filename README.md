@@ -1,4 +1,4 @@
-# 🏦 Smart Budget Tracker
+# 🏦 AI Budget Tracker
 
 An AI-powered budget tracking application with real-time transaction categorization, insights, and anomaly detection.
 
