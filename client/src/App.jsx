@@ -13,6 +13,7 @@ import PredictionCard from './components/PredictionCard';
 import VoiceAssistant from './components/VoiceAssistant';
 import AIChatAssistant from './components/AIChatAssistant';
 import TransactionSections from './components/TransactionSections';
+import Transactions from './components/Transactions';
 import SavingPlanner from './components/SavingPlanner';
 import Reports from './components/Reports';
 import SettingsComponent from './components/Settings';
@@ -90,6 +91,7 @@ const Navbar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const navItems = [
     { name: 'Dashboard', icon: Home, key: 'dashboard' },
     { name: 'Analytics', icon: BarChart3, key: 'analytics' },
+    { name: 'Transactions', icon: Wallet, key: 'transactions' },
     { name: 'Family Budget', icon: Users, key: 'family-budget' },
     { name: 'Saving Goals', icon: PiggyBank, key: 'saving-goals' },
     { name: 'What-If', icon: Calculator, key: 'whatif' },
@@ -718,6 +720,8 @@ function AppContent() {
         />;
       case 'analytics':
         return <Analytics transactions={transactions} bankAccounts={bankAccounts} />;
+      case 'transactions':
+        return <Transactions transactions={transactions} bankAccounts={bankAccounts} />;
       case 'reports':
         return <Reports transactions={transactions} accounts={bankAccounts} />;
       case 'whatif':
