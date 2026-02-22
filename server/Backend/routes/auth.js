@@ -225,6 +225,76 @@ router.post('/resend-verification', emailVerificationLimiter, async (req, res) =
   }
 });
 
+// Resend verification email
+router.post('/resend-verification', emailVerificationLimiter, async (req, res) => {
+  try {
+    console.log('Resend verification endpoint hit with body:', req.body);
+    const { email } = req.body;
+    
+    if (!email) {
+      console.log('Missing email for resend verification');
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    const sanitizedEmail = sanitizeInput(email.toLowerCase());
+    
+    // Validate email format
+    if (!validateEmail(sanitizedEmail)) {
+      console.log('Invalid email format for resend:', sanitizedEmail);
+      return res.status(400).json({ error: 'Please enter a valid email address' });
+    }
+    
+    // Find user
+    const user = await User.findOne({ email: sanitizedEmail });
+    
+    if (!user) {
+      console.log('No user found for resend verification:', sanitizedEmail);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if email is already verified
+    if (user.emailVerified) {
+      console.log('User email already verified for resend:', user._id);
+      return res.status(400).json({ error: 'Email is already verified' });
+    }
+    
+    // Generate new verification token
+    const verificationToken = generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    // Update user with new token
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpires = verificationExpires;
+    await user.save();
+    
+    // Send verification email
+    const verificationLink = `${config.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${encodeURIComponent(sanitizedEmail)}`;
+    
+    const emailResult = await sendEmail(sanitizedEmail, 'verification', {
+      name: user.name,
+      link: verificationLink
+    });
+    
+    console.log('Resend verification email result:', emailResult);
+    
+    if (!emailResult.success) {
+      return res.status(500).json({ error: 'Failed to send verification email' });
+    }
+    
+    res.json({ 
+      success: true,
+      message: 'Verification email has been sent! Please check your email.' 
+    });
+    
+    console.log('Resend verification response sent successfully');
+    
+  } catch (err) {
+    console.error('Resend verification error:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ error: 'Failed to resend verification email. Please try again.', details: err.message });
+  }
+});
+
 // Login with email verification check
 router.post('/login', authLimiter, accountLockout, async (req, res) => {
   try {
