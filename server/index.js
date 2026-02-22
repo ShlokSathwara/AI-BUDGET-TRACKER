@@ -61,6 +61,91 @@ app.post('/categorize', async (req, res) => {
   }
 });
 
+// Extract transaction details from SMS
+app.post('/extract-sms', async (req, res) => {
+  try {
+    const { smsText } = req.body;
+    if (!smsText) {
+      return res.status(400).json({ error: 'SMS text is required' });
+    }
+    
+    // This would require implementing the same parsing logic as in the client
+    // For now, we'll return a placeholder - in a real implementation you'd use
+    // the same parsing functions from the client-side code
+    const transactionDetails = extractTransactionFromSMS(smsText);
+    res.json({ transaction: transactionDetails });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to extract transaction from SMS' });
+  }
+});
+
+// Extract transaction details from email
+app.post('/extract-email', async (req, res) => {
+  try {
+    const { subject, body } = req.body;
+    if (!subject && !body) {
+      return res.status(400).json({ error: 'Either subject or body is required' });
+    }
+    
+    const transactionDetails = extractTransactionFromEmail(subject, body);
+    res.json({ transaction: transactionDetails });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to extract transaction from email' });
+  }
+});
+
+// Helper functions for transaction extraction
+function extractTransactionFromSMS(smsText) {
+  // Simplified extraction logic - in practice, this would be more sophisticated
+  const amountMatches = smsText.match(/(?:rs|inr|rupees|₹|\$|usd)\s*([\d,]+\.?\d*)/i);
+  const amount = amountMatches ? parseFloat(amountMatches[1].replace(/,/g, '')) : null;
+  
+  const merchantMatches = smsText.match(/(?:at|on|for)\s+([A-Z0-9\s&]{3,30})/i);
+  const merchant = merchantMatches ? merchantMatches[1].trim() : 'Bank Transaction';
+  
+  // Determine type
+  let type = 'debit';
+  if (smsText.toLowerCase().includes('credited') || smsText.toLowerCase().includes('credit')) {
+    type = 'credit';
+  }
+  
+  // Extract account last 4 digits
+  const accountMatches = smsText.match(/(?:XXXX-?|\*{2,4}-?)(\d{4})/);
+  const lastFourDigits = accountMatches ? accountMatches[1] : null;
+  
+  return {
+    amount,
+    merchant,
+    type,
+    lastFourDigits,
+    originalSMS: smsText
+  };
+}
+
+function extractTransactionFromEmail(subject, body) {
+  const fullText = (subject || '') + ' ' + (body || '');
+  const amountMatches = fullText.match(/(?:rs|inr|rupees|₹|\$|usd)\s*([\d,]+\.?\d*)/i);
+  const amount = amountMatches ? parseFloat(amountMatches[1].replace(/,/g, '')) : null;
+  
+  const merchantMatches = fullText.match(/(?:from|via|at)\s+([A-Z0-9\s&]{3,30})/i);
+  const merchant = merchantMatches ? merchantMatches[1].trim() : 'Email Transaction';
+  
+  // Determine type
+  let type = 'debit';
+  if (fullText.toLowerCase().includes('credited') || fullText.toLowerCase().includes('refunded') || fullText.toLowerCase().includes('returned')) {
+    type = 'credit';
+  }
+  
+  return {
+    amount,
+    merchant,
+    type,
+    originalEmail: fullText
+  };
+}
+
 // Budgets
 app.post('/budgets', async (req, res) => {
   try {

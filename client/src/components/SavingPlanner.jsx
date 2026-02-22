@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PiggyBank, Target, Calendar, TrendingUp, Clock, CheckCircle } from 'lucide-react';
+import { PiggyBank, Target, Calendar, TrendingUp, Clock, CheckCircle, BarChart3, Sparkles, DollarSign, TrendingDown, Wallet } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SavingPlanner = ({ transactions = [] }) => {
@@ -11,9 +11,46 @@ const SavingPlanner = ({ transactions = [] }) => {
     targetAmount: '',
     deadline: '',
     priority: 'medium',
-    category: 'savings'
+    category: 'savings',
+    description: ''
   });
 
+  // AI-powered insights based on transaction data
+  const getAIInsights = () => {
+    if (!transactions || transactions.length === 0) return null;
+    
+    // Calculate average monthly income and expenses
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    const monthlyTransactions = transactions.filter(tx => {
+      const txDate = new Date(tx.date || tx.createdAt);
+      return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+    });
+    
+    const monthlyIncome = monthlyTransactions
+      .filter(tx => tx.type === 'credit')
+      .reduce((sum, tx) => sum + (tx.amount || 0), 0);
+      
+    const monthlyExpenses = monthlyTransactions
+      .filter(tx => tx.type === 'debit')
+      .reduce((sum, tx) => sum + (tx.amount || 0), 0);
+      
+    const monthlySavingsPotential = monthlyIncome - monthlyExpenses;
+    
+    return {
+      monthlyIncome,
+      monthlyExpenses,
+      monthlySavingsPotential,
+      suggestedGoals: monthlySavingsPotential > 0 ? [
+        { name: 'Emergency Fund', amount: monthlySavingsPotential * 3, period: '3 months' },
+        { name: 'Vacation Fund', amount: monthlySavingsPotential * 6, period: '6 months' },
+        { name: 'Big Purchase', amount: monthlySavingsPotential * 12, period: '1 year' }
+      ] : []
+    };
+  };
+  
   const calculateProgress = (current, target) => {
     return Math.min((current / target) * 100, 100);
   };
@@ -25,6 +62,30 @@ const SavingPlanner = ({ transactions = [] }) => {
     const amountNeeded = target - current;
     return monthsLeft > 0 ? Math.ceil(amountNeeded / monthsLeft) : 0;
   };
+  
+  // AI recommendation for optimal goal amount
+  const getOptimalGoalAmount = (deadline) => {
+    const insights = getAIInsights();
+    if (!insights || insights.monthlySavingsPotential <= 0) return 0;
+    
+    const monthsLeft = Math.ceil(
+      (new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24 * 30)
+    );
+    
+    // Recommend a realistic goal based on monthly savings potential
+    return Math.min(insights.monthlySavingsPotential * monthsLeft, insights.monthlySavingsPotential * 24); // Max 2 years worth
+  };
+  
+  // AI recommendation for deadline based on target amount
+  const getOptimalDeadline = (targetAmount) => {
+    const insights = getAIInsights();
+    if (!insights || insights.monthlySavingsPotential <= 0) return '';
+    
+    const monthsNeeded = Math.ceil(targetAmount / insights.monthlySavingsPotential);
+    const optimalDate = new Date();
+    optimalDate.setMonth(optimalDate.getMonth() + monthsNeeded);
+    return optimalDate.toISOString().split('T')[0];
+  };
 
   const addGoal = () => {
     if (!newGoal.name || !newGoal.targetAmount || !newGoal.deadline) return;
@@ -34,7 +95,9 @@ const SavingPlanner = ({ transactions = [] }) => {
       ...newGoal,
       targetAmount: parseFloat(newGoal.targetAmount),
       currentAmount: 0,
-      status: 'active'
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      aiRecommendation: getOptimalGoalAmount(newGoal.deadline) > 0
     };
 
     setGoals([...goals, goal]);
@@ -43,7 +106,8 @@ const SavingPlanner = ({ transactions = [] }) => {
       targetAmount: '',
       deadline: '',
       priority: 'medium',
-      category: 'savings'
+      category: 'savings',
+      description: ''
     });
     setShowAddGoal(false);
   };
@@ -72,6 +136,8 @@ const SavingPlanner = ({ transactions = [] }) => {
     }
   };
 
+  const aiInsights = getAIInsights();
+  
   return (
     <motion.div 
       className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl"
@@ -82,22 +148,76 @@ const SavingPlanner = ({ transactions = [] }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-            <PiggyBank className="w-6 h-6 text-white" />
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Saving Goals</h2>
-            <p className="text-gray-400 text-sm">Plan & track your financial goals</p>
+            <h2 className="text-2xl font-bold text-white">AI-Powered Saving Goals</h2>
+            <p className="text-gray-400 text-sm">Plan & track your financial goals with AI insights</p>
           </div>
         </div>
         <motion.button
           onClick={() => setShowAddGoal(true)}
-          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-300"
+          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-500 hover:to-purple-500 transition-all duration-300 flex items-center space-x-2"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Add Goal
+          <PiggyBank className="w-4 h-4" />
+          <span>Add Goal</span>
         </motion.button>
       </div>
+      
+      {/* AI Insights Section */}
+      {aiInsights && (
+        <motion.div 
+          className="mb-6 p-4 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl border border-white/20"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center space-x-2 mb-3">
+            <BarChart3 className="w-5 h-5 text-blue-400" />
+            <h3 className="font-semibold text-white">AI Insights</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className="flex items-center space-x-2 text-gray-300">
+              <Wallet className="w-4 h-4 text-green-400" />
+              <span>Monthly Income: ₹{aiInsights.monthlyIncome.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-300">
+              <TrendingDown className="w-4 h-4 text-red-400" />
+              <span>Monthly Expenses: ₹{aiInsights.monthlyExpenses.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-300">
+              <TrendingUp className="w-4 h-4 text-blue-400" />
+              <span>Potential Savings: ₹{aiInsights.monthlySavingsPotential.toLocaleString()}</span>
+            </div>
+          </div>
+          
+          {aiInsights.suggestedGoals.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-white/10">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Suggested Goals:</h4>
+              <div className="flex flex-wrap gap-2">
+                {aiInsights.suggestedGoals.map((suggestion, index) => (
+                  <motion.span
+                    key={index}
+                    className="px-2 py-1 bg-blue-500/30 text-blue-200 rounded-md text-xs cursor-pointer hover:bg-blue-500/40 transition-colors"
+                    whileHover={{ scale: 1.05 }}
+                    onClick={() => {
+                      setNewGoal({
+                        ...newGoal,
+                        name: suggestion.name,
+                        targetAmount: suggestion.amount.toString()
+                      });
+                    }}
+                  >
+                    {suggestion.name}: ₹{suggestion.amount.toLocaleString()} ({suggestion.period})
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       <div className="space-y-4">
         <AnimatePresence>
@@ -124,12 +244,20 @@ const SavingPlanner = ({ transactions = [] }) => {
             goals.map((goal) => (
               <motion.div
                 key={goal.id}
-                className={`p-4 bg-gradient-to-r ${getClassyGradient(goal.priority)} rounded-xl border border-white/20`}
+                className={`p-4 bg-gradient-to-r ${getClassyGradient(goal.priority)} rounded-xl border border-white/20 relative`}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.4 }}
               >
+                {/* AI Badge */}
+                {goal.aiRecommendation && (
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+                    <Sparkles className="w-3 h-3" />
+                    <span>AI</span>
+                  </div>
+                )}
+                
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div className={`p-2 rounded-lg ${
@@ -141,7 +269,11 @@ const SavingPlanner = ({ transactions = [] }) => {
                     </div>
                     <div>
                       <h3 className="font-semibold text-white">{goal.name}</h3>
-                      <p className="text-sm text-gray-300 capitalize">{goal.category}</p>
+                      <div className="flex items-center space-x-2 text-sm text-gray-300">
+                        <span className="capitalize">{goal.category}</span>
+                        {goal.description && <span>•</span>}
+                        {goal.description && <span className="truncate max-w-[100px]">{goal.description}</span>}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -165,23 +297,37 @@ const SavingPlanner = ({ transactions = [] }) => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1 text-gray-300">
-                      <Clock className="w-4 h-4" />
-                      <span>{new Date(goal.deadline).toLocaleDateString()}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-1 text-gray-300">
+                        <Clock className="w-4 h-4" />
+                        <span>{new Date(goal.deadline).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-gray-300">
+                        <TrendingUp className="w-4 h-4" />
+                        <span>₹{calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline).toLocaleString()}/mo</span>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-1 text-gray-300">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>₹{calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline).toLocaleString()}/mo</span>
+                    <div className={`px-2 py-1 rounded-full text-xs ${
+                      goal.status === 'completed' 
+                        ? 'bg-green-500/30 text-green-300' 
+                        : 'bg-yellow-500/30 text-yellow-300'
+                    }`}>
+                      {goal.status === 'completed' ? 'Completed' : 'In Progress'}
                     </div>
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-xs ${
-                    goal.status === 'completed' 
-                      ? 'bg-green-500/30 text-green-300' 
-                      : 'bg-yellow-500/30 text-yellow-300'
-                  }`}>
-                    {goal.status === 'completed' ? 'Completed' : 'In Progress'}
+                  
+                  {/* AI Progress Insight */}
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <div className="flex items-center space-x-4">
+                      <span>
+                        Days left: {Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24))}
+                      </span>
+                      <span>
+                        Needed daily: ₹{Math.ceil(calculateMonthlySavings(goal.currentAmount, goal.targetAmount, goal.deadline) / 30).toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -265,7 +411,34 @@ const SavingPlanner = ({ transactions = [] }) => {
                     <option value="travel">Travel</option>
                     <option value="home">Home</option>
                     <option value="leisure">Leisure</option>
+                    <option value="emergency">Emergency Fund</option>
+                    <option value="retirement">Retirement</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Description (Optional)</label>
+                  <textarea
+                    value={newGoal.description}
+                    onChange={(e) => setNewGoal({...newGoal, description: e.target.value})}
+                    className="w-full px-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    placeholder="Describe your goal..."
+                    rows="2"
+                  />
+                </div>
+
+                {/* AI Recommendations */}
+                <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    <span className="text-sm font-medium text-blue-300">AI Recommendation</span>
+                  </div>
+                  {newGoal.targetAmount && newGoal.deadline && (
+                    <div className="text-xs text-gray-300 space-y-1">
+                      <div>Optimal monthly savings: ₹{calculateMonthlySavings(0, parseFloat(newGoal.targetAmount), newGoal.deadline).toLocaleString()}</div>
+                      <div>Based on your current spending: ₹{(aiInsights?.monthlySavingsPotential || 0).toLocaleString()}/month</div>
+                    </div>
+                  )}
                 </div>
               </div>
 

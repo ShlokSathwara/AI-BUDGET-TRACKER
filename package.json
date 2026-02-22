@@ -12,7 +12,20 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-navigation/bottom-tabs": "^7.14.0",
+    "@react-navigation/native": "^7.1.28",
+    "@react-navigation/stack": "^7.7.2",
+    "axios": "^1.13.5",
     "json-server": "^1.0.0-beta.9",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "react-native-paper": "^5.15.0",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.23.0",
+    "react-native-vector-icons": "^10.3.0"
   }
 }

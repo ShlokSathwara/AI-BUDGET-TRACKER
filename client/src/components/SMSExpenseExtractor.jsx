@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Upload, CheckCircle, XCircle, AlertTriangle, Wallet, FileText } from 'lucide-react';
-import { parseSpecificBankSMS } from '../utils/smsParser';
+import { MessageSquare, Mail, Upload, CheckCircle, XCircle, AlertTriangle, Wallet, FileText, FileInput } from 'lucide-react';
+import { parseSpecificBankSMS, parseEmailReceipt } from '../utils/smsParser';
 
 const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
   const [smsInput, setSmsInput] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
   const [parsedTransactions, setParsedTransactions] = useState([]);
   const [extractedTransactions, setExtractedTransactions] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [activeTab, setActiveTab] = useState('sms'); // 'sms' or 'email'
 
   // Function to find matching bank account by last 4 digits
   const findMatchingAccount = (lastFourDigits) => {
@@ -44,8 +47,9 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
               ...parsedData,
               bankAccountId: matchingAccount.id,
               paymentMethod: 'bank_transfer',
-              _id: Date.now().toString(),
-              user: matchingAccount.userId || 'unknown'
+              _id: Date.now().toString() + '_sms',
+              user: matchingAccount.userId || 'unknown',
+              source: 'sms'
             };
             
             setParsedTransactions(prev => [...prev, transaction]);
@@ -66,10 +70,54 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
     }, 500);
   };
 
+  // Parse Email Receipt
+  const handleParseEmail = () => {
+    if (!emailSubject.trim() && !emailBody.trim()) {
+      setErrorMessage('Please enter either email subject or email body');
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    setTimeout(() => {
+      try {
+        const parsedData = parseEmailReceipt(emailSubject, emailBody);
+        
+        if (parsedData) {
+          const transaction = {
+            ...parsedData,
+            bankAccountId: null, // Email receipts don't have account info
+            paymentMethod: 'email_receipt',
+            _id: Date.now().toString() + '_email',
+            user: 'unknown',
+            source: 'email'
+          };
+          
+          setParsedTransactions(prev => [...prev, transaction]);
+          setEmailSubject('');
+          setEmailBody('');
+          setErrorMessage('');
+        } else {
+          setErrorMessage('Could not parse transaction details from the email');
+        }
+      } catch (error) {
+        console.error('Error parsing email:', error);
+        setErrorMessage('Error parsing email. Please check the format.');
+      } finally {
+        setIsProcessing(false);
+      }
+    }, 500);
+  };
+
 // Add notification function
   const showTransactionNotification = (transaction) => {
-    const notificationTitle = `New ${transaction.type === 'credit' ? 'Credit' : 'Debit'} Entry (SMS)`;
-    const notificationMessage = `Transaction: ${transaction.merchant || 'Bank Transaction'}\nAmount: ₹${transaction.amount?.toLocaleString() || '0'}\nCategory: ${transaction.category || 'Uncategorized'}\nAccount: ${findMatchingAccount(transaction.lastFourDigits)?.name || `XXXX-${transaction.lastFourDigits}`}`;
+    const source = transaction.source || 'SMS';
+    const notificationTitle = `New ${transaction.type === 'credit' ? 'Credit' : 'Debit'} Entry (${source.toUpperCase()})`;
+    const accountInfo = transaction.lastFourDigits 
+      ? (findMatchingAccount(transaction.lastFourDigits)?.name || `XXXX-${transaction.lastFourDigits}`)
+      : 'Email Receipt';
+    
+    const notificationMessage = `Transaction: ${transaction.merchant || 'Bank Transaction'}\nAmount: ₹${transaction.amount?.toLocaleString() || '0'}\nCategory: ${transaction.category || 'Uncategorized'}\nSource: ${accountInfo}`;
     
     // Create notification
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -91,7 +139,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
     }
     
     // Show in-app notification as well
-    alert(`✅ SMS Transaction added successfully!\n\n${notificationTitle}\n${notificationMessage}`);
+    alert(`✅ ${source.toUpperCase()} Transaction added successfully!\n\n${notificationTitle}\n${notificationMessage}`);
   };
 
   // Add parsed transaction to the main transaction list
@@ -174,53 +222,121 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
             <MessageSquare className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Auto SMS Expense Extraction</h2>
-            <p className="text-sm text-gray-400">Automatically extract transactions from bank SMS</p>
+            <h2 className="text-xl font-bold text-white">Auto Expense Extraction</h2>
+            <p className="text-sm text-gray-400">Extract transactions from SMS or email receipts</p>
           </div>
+        </div>
+        
+        {/* Tab Selector */}
+        <div className="flex bg-white/10 rounded-lg p-1">
+          <button
+            onClick={() => setActiveTab('sms')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'sms' 
+                ? 'bg-blue-600 text-white' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            SMS
+          </button>
+          <button
+            onClick={() => setActiveTab('email')}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'email' 
+                ? 'bg-blue-600 text-white' 
+                : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            Email
+          </button>
         </div>
       </div>
 
-      {/* Input Section */}
+      {/* Input Section - Conditional based on active tab */}
       <div className="mb-6">
-        <div className="flex items-center space-x-2 mb-3">
-          <label className="text-sm font-medium text-gray-300">Bank SMS Message</label>
-          <button
-            type="button"
-            onClick={loadDemoSMS}
-            className="text-xs text-blue-400 hover:text-blue-300 underline"
-          >
-            Load Demo
-          </button>
-        </div>
-        
-        <div className="flex space-x-2">
-          <textarea
-            value={smsInput}
-            onChange={(e) => setSmsInput(e.target.value)}
-            placeholder="Paste your bank SMS here (e.g., 'INR 1,234.56 debited from A/C XXXX1234 on 15/02/2024 at AMAZON.IN...')"
-            rows="3"
-            className="flex-1 px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          />
-          <motion.button
-            onClick={handleParseSMS}
-            disabled={isProcessing || !smsInput.trim()}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            {isProcessing ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="h-5 w-5" />
-                <span>Parse SMS</span>
-              </>
-            )}
-          </motion.button>
-        </div>
+        {activeTab === 'sms' ? (
+          <>
+            <div className="flex items-center space-x-2 mb-3">
+              <label className="text-sm font-medium text-gray-300">Bank SMS Message</label>
+              <button
+                type="button"
+                onClick={loadDemoSMS}
+                className="text-xs text-blue-400 hover:text-blue-300 underline"
+              >
+                Load Demo
+              </button>
+            </div>
+            
+            <div className="flex space-x-2">
+              <textarea
+                value={smsInput}
+                onChange={(e) => setSmsInput(e.target.value)}
+                placeholder="Paste your bank SMS here (e.g., 'INR 1,234.56 debited from A/C XXXX1234 on 15/02/2024 at AMAZON.IN...')"
+                rows="3"
+                className="flex-1 px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+              <motion.button
+                onClick={handleParseSMS}
+                disabled={isProcessing || !smsInput.trim()}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5" />
+                    <span>Parse SMS</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="text-sm font-medium text-gray-300 mb-2 block">Email Receipt</label>
+            
+            <div className="space-y-3">
+              <input
+                type="text"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+                placeholder="Email Subject (optional)"
+                className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <textarea
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+                placeholder="Paste email body content here..."
+                rows="4"
+                className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+              <motion.button
+                onClick={handleParseEmail}
+                disabled={isProcessing || (!emailSubject.trim() && !emailBody.trim())}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-500 hover:to-indigo-500 transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isProcessing ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-5 w-5" />
+                    <span>Parse Email</span>
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Status Messages */}
@@ -262,7 +378,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
             <AnimatePresence>
               {parsedTransactions.map((transaction, index) => {
                 const matchingAccount = findMatchingAccount(transaction.lastFourDigits);
-                
+                                  
                 return (
                   <motion.div
                     key={transaction._id}
@@ -280,8 +396,11 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                           <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
                             {transaction.type.toUpperCase()}
                           </span>
+                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full">
+                            {transaction.source?.toUpperCase() || 'SMS'}
+                          </span>
                         </div>
-                        
+                                          
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>
                             <span className="text-gray-400">Amount:</span>
@@ -291,24 +410,30 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                             <span className="text-gray-400">Category:</span>
                             <span className="text-white ml-1">{transaction.category}</span>
                           </div>
-                          <div>
-                            <span className="text-gray-400">Account:</span>
-                            <span className="text-white ml-1">
-                              {matchingAccount ? matchingAccount.name : `XXXX-${transaction.lastFourDigits}`}
-                            </span>
-                          </div>
+                          {transaction.lastFourDigits && (
+                            <div>
+                              <span className="text-gray-400">Account:</span>
+                              <span className="text-white ml-1">
+                                {matchingAccount ? matchingAccount.name : `XXXX-${transaction.lastFourDigits}`}
+                              </span>
+                            </div>
+                          )}
                           <div>
                             <span className="text-gray-400">Date:</span>
                             <span className="text-white ml-1">{new Date(transaction.date).toLocaleDateString()}</span>
                           </div>
                         </div>
-                        
+                                          
                         <div className="mt-2">
-                          <span className="text-gray-400 text-xs">SMS:</span>
-                          <p className="text-gray-300 text-xs mt-1 line-clamp-2">{transaction.originalSMS}</p>
+                          <span className="text-gray-400 text-xs">{transaction.source?.toUpperCase() || 'SMS'}:</span>
+                          <p className="text-gray-300 text-xs mt-1 line-clamp-2">
+                            {transaction.source === 'email' 
+                              ? transaction.originalEmail?.substring(0, 100) + '...'
+                              : transaction.originalSMS?.substring(0, 100) + '...'}
+                          </p>
                         </div>
                       </div>
-                      
+                                        
                       <div className="flex space-x-2 ml-4">
                         <motion.button
                           onClick={() => handleAddTransaction(transaction)}
@@ -319,7 +444,7 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
                         >
                           <CheckCircle className="h-4 w-4" />
                         </motion.button>
-                        
+                                          
                         <motion.button
                           onClick={() => removeParsedTransaction(transaction._id)}
                           className="p-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors"
@@ -345,13 +470,23 @@ const SMSExpenseExtractor = ({ bankAccounts = [], onAddTransaction }) => {
           <FileText className="h-4 w-4 text-blue-400" />
           <span>How to Use</span>
         </h4>
-        <ul className="text-sm text-gray-300 space-y-1">
-          <li>• Copy and paste your bank SMS notification into the text box</li>
-          <li>• The system will extract transaction details automatically</li>
-          <li>• Matched with your bank account based on last 4 digits</li>
-          <li>• Review and confirm the extracted details before adding</li>
-          <li>• Supports major Indian banks (SBI, HDFC, ICICI, etc.)</li>
-        </ul>
+        {activeTab === 'sms' ? (
+          <ul className="text-sm text-gray-300 space-y-1">
+            <li>• Copy and paste your bank SMS notification into the text box</li>
+            <li>• The system will extract transaction details automatically</li>
+            <li>• Matched with your bank account based on last 4 digits</li>
+            <li>• Review and confirm the extracted details before adding</li>
+            <li>• Supports major Indian banks (SBI, HDFC, ICICI, etc.)</li>
+          </ul>
+        ) : (
+          <ul className="text-sm text-gray-300 space-y-1">
+            <li>• Paste email subject and/or body content from receipt emails</li>
+            <li>• The system will extract transaction details automatically</li>
+            <li>• Works with common e-commerce platforms (Amazon, Flipkart, etc.)</li>
+            <li>• Review and confirm the extracted details before adding</li>
+            <li>• Automatically categorizes expenses based on merchant</li>
+          </ul>
+        )}
       </div>
     </motion.div>
   );

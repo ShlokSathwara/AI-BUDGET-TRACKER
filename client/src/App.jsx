@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon, Calculator, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Menu, X, Wallet, User, BarChart3, FileText, Settings, Home, LogOut, Sun, Moon, Calculator, AlertTriangle, MessageSquare, PiggyBank, Edit3, Trash2 } from 'lucide-react';
 import SummaryCards from './components/SummaryCards';
 import AddTransaction from './components/AddTransaction';
 import AddCreditTransaction from './components/AddCreditTransaction';
@@ -19,6 +19,7 @@ import SimpleAuth from './components/SimpleAuth';
 import WhatIfSimulator from './components/WhatIfSimulator';
 import SmartOverspendingAlerts from './components/SmartOverspendingAlerts';
 import SMSExpenseExtractor from './components/SMSExpenseExtractor';
+import EditTransactionModal from './components/EditTransactionModal';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import NotificationDisplay from './components/NotificationDisplay';
@@ -28,32 +29,45 @@ import { getTransactions } from './utils/api';
 
 // Animated Background Component
 const AnimatedBackground = () => {
+  const particles = useMemo(() => {
+    return Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      width: Math.floor(Math.random() * 100) + 20,
+      height: Math.floor(Math.random() * 100) + 20,
+      left: Math.random() * 100,
+      top: Math.random() * 100,
+      xMove: Math.random() * 100 - 50,
+      duration: Math.random() * 10 + 10,
+      delay: Math.random() * 5,
+    }));
+  }, []); // Empty dependency array ensures this only runs once
+
   return (
     <div className="fixed inset-0 overflow-hidden -z-10">
       {/* Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-black"></div>
       
       {/* Floating Particles */}
-      {[...Array(20)].map((_, i) => (
+      {particles.map((particle) => (
         <motion.div
-          key={i}
+          key={particle.id}
           className="absolute rounded-full bg-blue-400/20"
           style={{
-            width: Math.random() * 100 + 20,
-            height: Math.random() * 100 + 20,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            width: particle.width,
+            height: particle.height,
+            left: `${particle.left}%`,
+            top: `${particle.top}%`,
           }}
           animate={{
             y: [0, -100, 0],
-            x: [0, Math.random() * 100 - 50, 0],
+            x: [0, particle.xMove, 0],
             opacity: [0.2, 0.5, 0.2],
           }}
           transition={{
-            duration: Math.random() * 10 + 10,
+            duration: particle.duration,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: Math.random() * 5,
+            delay: particle.delay,
           }}
         />
       ))}
@@ -73,6 +87,7 @@ const Navbar = ({ activeTab, setActiveTab, user, onLogout }) => {
   const navItems = [
     { name: 'Dashboard', icon: Home, key: 'dashboard' },
     { name: 'Analytics', icon: BarChart3, key: 'analytics' },
+    { name: 'Saving Goals', icon: PiggyBank, key: 'saving-goals' },
     { name: 'What-If', icon: Calculator, key: 'whatif' },
     { name: 'Overspending', icon: AlertTriangle, key: 'overspending' },
     { name: 'SMS Extractor', icon: MessageSquare, key: 'sms-extractor' },
@@ -265,6 +280,8 @@ function AppContent() {
   const [activeTransactionTab, setActiveTransactionTab] = useState('expense');
   const [bankAccounts, setBankAccounts] = useState([]);
   const [goals, setGoals] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const { isDarkMode } = useTheme();
 
   // Load user-specific settings
@@ -517,6 +534,150 @@ function AppContent() {
     }
   };
 
+  // Handle transaction update
+  const handleUpdateTransaction = async (updatedTx) => {
+    try {
+      if (!user || !user.id) {
+        alert('Error: Please log in first before updating transactions.');
+        return;
+      }
+
+      // Update transaction state
+      setTransactions(prev => {
+        return prev.map(tx => tx._id === updatedTx._id ? updatedTx : tx);
+      });
+
+      // Update localStorage
+      try {
+        const userTransactionsKey = `transactions_${user.id}`;
+        const currentTransactions = JSON.parse(localStorage.getItem(userTransactionsKey) || '[]');
+        const updatedTransactions = currentTransactions.map(tx => 
+          tx._id === updatedTx._id ? updatedTx : tx
+        );
+        localStorage.setItem(userTransactionsKey, JSON.stringify(updatedTransactions));
+        
+        // Also update the main transactions array
+        setTransactions(updatedTransactions);
+      } catch (storageError) {
+        console.error('Error updating transaction in localStorage:', storageError);
+        alert('Warning: Transaction updated temporarily but failed to save permanently.');
+      }
+
+      // Update bank account balances
+      if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+        // First, reverse the effect of the old transaction
+        const oldTransaction = transactions.find(tx => tx._id === updatedTx._id);
+        if (oldTransaction && oldTransaction.bankAccountId) {
+          const oldAmount = oldTransaction.type === 'credit' 
+            ? (oldTransaction.amount || 0)
+            : -(oldTransaction.amount || 0);
+          
+          // Then apply the effect of the new transaction
+          const newAmount = updatedTx.type === 'credit' 
+            ? (updatedTx.amount || 0)
+            : -(updatedTx.amount || 0);
+          
+          const amountDifference = newAmount - oldAmount;
+          
+          const updatedAccounts = bankAccounts.map(acc => {
+            if (acc && acc.id === updatedTx.bankAccountId) {
+              const currentBalance = typeof acc.balance === 'number' ? acc.balance : 0;
+              return { 
+                ...acc, 
+                balance: currentBalance + amountDifference 
+              };
+            }
+            return acc;
+          }).filter(acc => acc && acc.id);
+          
+          if (updatedAccounts.length > 0) {
+            setBankAccounts(updatedAccounts);
+            
+            // Save updated accounts
+            try {
+              const userAccountsKey = `bank_accounts_${user.id}`;
+              localStorage.setItem(userAccountsKey, JSON.stringify(updatedAccounts));
+            } catch (storageError) {
+              console.error('Error saving bank accounts:', storageError);
+            }
+          }
+        }
+      }
+
+      alert('✅ Transaction updated successfully!');
+    } catch (err) {
+      console.error('Error updating transaction:', err);
+      alert('Failed to update transaction: ' + err.message);
+    }
+  };
+
+  // Handle transaction deletion
+  const handleDeleteTransaction = async (transactionId) => {
+    try {
+      if (!user || !user.id) {
+        alert('Error: Please log in first before deleting transactions.');
+        return;
+      }
+
+      // Remove transaction from state
+      setTransactions(prev => {
+        return prev.filter(tx => tx._id !== transactionId);
+      });
+
+      // Update localStorage
+      try {
+        const userTransactionsKey = `transactions_${user.id}`;
+        const currentTransactions = JSON.parse(localStorage.getItem(userTransactionsKey) || '[]');
+        const updatedTransactions = currentTransactions.filter(tx => tx._id !== transactionId);
+        localStorage.setItem(userTransactionsKey, JSON.stringify(updatedTransactions));
+        
+        // Update the main transactions array
+        setTransactions(updatedTransactions);
+      } catch (storageError) {
+        console.error('Error deleting transaction from localStorage:', storageError);
+        alert('Warning: Transaction deleted temporarily but failed to remove permanently.');
+      }
+
+      // Update bank account balance to reverse the transaction
+      if (Array.isArray(bankAccounts) && bankAccounts.length > 0) {
+        const deletedTransaction = transactions.find(tx => tx._id === transactionId);
+        if (deletedTransaction && deletedTransaction.bankAccountId) {
+          const amount = deletedTransaction.type === 'credit' 
+            ? -(deletedTransaction.amount || 0)  // Reverse the credit
+            : (deletedTransaction.amount || 0);  // Reverse the debit
+          
+          const updatedAccounts = bankAccounts.map(acc => {
+            if (acc && acc.id === deletedTransaction.bankAccountId) {
+              const currentBalance = typeof acc.balance === 'number' ? acc.balance : 0;
+              return { 
+                ...acc, 
+                balance: currentBalance + amount 
+              };
+            }
+            return acc;
+          }).filter(acc => acc && acc.id);
+          
+          if (updatedAccounts.length > 0) {
+            setBankAccounts(updatedAccounts);
+            
+            // Save updated accounts
+            try {
+              const userAccountsKey = `bank_accounts_${user.id}`;
+              localStorage.setItem(userAccountsKey, JSON.stringify(updatedAccounts));
+            } catch (storageError) {
+              console.error('Error saving bank accounts:', storageError);
+            }
+          }
+        }
+      }
+
+      alert('✅ Transaction deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting transaction:', err);
+      alert('Failed to delete transaction: ' + err.message);
+    }
+  };
+
   const renderActiveTab = () => {
     const userSettings = loadUserSettings();
     
@@ -534,6 +695,8 @@ function AppContent() {
           bankAccounts={bankAccounts} 
           onAddTransaction={handleAddTransaction}
         />;
+      case 'saving-goals':
+        return <SavingPlanner transactions={transactions} />;
       case 'settings':
         return <SettingsComponent 
           currentUser={user} 
@@ -630,7 +793,7 @@ function AppContent() {
                 <Analytics transactions={transactions} bankAccounts={bankAccounts} />
               </div>
 
-              {/* Right Column - Bank Account Manager, Graphs, Prediction Card and Recent Transactions */}
+              {/* Right Column - Bank Account Manager, Graphs, Prediction Card, Saving Planner and Recent Transactions */}
               <div className="space-y-6">
                 {/* Bank Account Manager */}
                 <BankAccountManager 
@@ -647,6 +810,9 @@ function AppContent() {
                 {/* Payment Reminders */}
                 <PaymentReminders user={user} bankAccounts={bankAccounts} />
                 
+                {/* AI-Powered Saving Planner */}
+                <SavingPlanner transactions={transactions} />
+                
                 <PredictionCard transactions={transactions} />
                 
                 {/* Recent Transactions */}
@@ -660,14 +826,37 @@ function AppContent() {
                   ) : (
                     <div className="space-y-3">
                       {transactions.map((t) => (
-                        <div key={t._id} className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium">{t.merchant}</div>
-                              <div className="text-sm text-gray-400">{t.category}</div>
-                            </div>
+                        <div key={t._id} className="p-4 bg-white/5 rounded-xl border border-white/10 classy-element flex justify-between items-center">
+                          <div className="flex-1">
+                            <div className="font-medium">{t.merchant}</div>
+                            <div className="text-sm text-gray-400">{t.category} • {new Date(t.createdAt || t.date).toLocaleDateString()}</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
                             <div className={`font-semibold ${t.type === 'credit' ? 'text-green-400' : 'text-red-400'}`}>
                               {t.type === 'credit' ? '+' : '-'}₹{t.amount.toFixed(2)}
+                            </div>
+                            <div className="flex space-x-1 ml-2">
+                              <button 
+                                onClick={() => {
+                                  setSelectedTransaction(t);
+                                  setShowEditModal(true);
+                                }}
+                                className="p-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-lg transition-colors"
+                                title="Edit transaction"
+                              >
+                                <Edit3 className="w-4 h-4 text-blue-300" />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (window.confirm('Are you sure you want to delete this transaction?')) {
+                                    handleDeleteTransaction(t._id);
+                                  }
+                                }}
+                                className="p-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
+                                title="Delete transaction"
+                              >
+                                <Trash2 className="w-4 h-4 text-red-300" />
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -714,6 +903,16 @@ function AppContent() {
             onTransactionDetected={handleAddTransaction}
             isVisible={false}
             setIsVisible={() => {}}
+          />
+          
+          {/* Edit Transaction Modal */}
+          <EditTransactionModal
+            transaction={selectedTransaction}
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSave={handleUpdateTransaction}
+            onDelete={handleDeleteTransaction}
+            accounts={bankAccounts}
           />
         </main>
       </div>

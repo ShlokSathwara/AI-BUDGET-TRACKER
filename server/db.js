@@ -62,17 +62,27 @@ async function init() {
     )`
   );
 
-  // Seed some categories if empty
+  // Seed comprehensive categories if empty
   const rows = await all('SELECT COUNT(*) as c FROM categories');
   const count = rows && rows[0] ? rows[0].c : 0;
   if (count === 0) {
     const seeds = [
-      { name: 'Groceries', keywords: 'grocery,supermarket,walmart,tesco,aldi' },
+      { name: 'Food & Dining', keywords: 'food,restaurant,cafe,meal,eat,pizza,burger,coffee,dine,swiggy,zomato,dominos,starbucks,subway,kfc,mcdonald,jain,veg,non-veg,bar,pub,brewery' },
+      { name: 'Transportation', keywords: 'uber,ola,cab,metro,bus,fuel,petrol,gas,travel,taxi,auto,rapido,bike rental,car rental,parking,railway,indian railways,irctc' },
+      { name: 'Shopping', keywords: 'amazon,flipkart,myntra,shop,store,purchase,buy,retail,bigbasket,grofers,reliance,tata,dm,almart,aldi,costco,best buy,electronics,clothing,fashion,apparel,cosmetics,makeup' },
+      { name: 'Entertainment', keywords: 'movie,cinema,netflix,disney,spotify,music,game,stream,hotstar,sony,zee,movies,theater,concert,event,ticket,bookmyshow,inox,pvr,amc' },
+      { name: 'Utilities', keywords: 'electricity,water,bill,power,gas,utility,broadband,internet,bsnl,jio,airtel,vi,reliance,tata,postpaid,prepaid,subscription' },
+      { name: 'Healthcare', keywords: 'hospital,medicine,pharma,health,medical,doctor,clinic,apollo,fortis,max,kims,prescription,consultation,health check,insurance,medlife,1mg' },
+      { name: 'Education', keywords: 'school,college,course,book,education,tuition,fee,university,degree,certificate,udemy,coursera,edx,byjus,vedantu,class,tutor,learning' },
+      { name: 'Travel', keywords: 'flight,hotel,airline,booking,trip,vacation,holiday,makemytrip,ixigo,oyo,airbnb,booking.com,expedia,goibibo,train,bus,cruise,resort,tour' },
+      { name: 'Investment', keywords: 'mf,mutual,stock,investment,sip,equity,bond,share,trading,portfolio,wealth,finance,broker,zerodha,upstox,groww,coin,crypto,bitcoin' },
+      { name: 'Insurance', keywords: 'insurance,premium,policy,claim,lic,hdfc life,max life,bajaj,icici pru,sbi life,health insurance,car insurance,bike insurance,term' },
+      { name: 'Tax & Legal', keywords: 'tax,gst,itr,income tax,service tax,legal,advocate,lawyer,court,government,municipal,property tax,house tax,registration' },
+      { name: 'Gifts & Charity', keywords: 'gift,donation,charity,ngo,temple,church,mosque,religious,festival,celebration,wedding,birthday,anniversary,occasion' },
       { name: 'Rent', keywords: 'rent,landlord' },
-      { name: 'Utilities', keywords: 'electric,water,gass,utility' },
-      { name: 'Transport', keywords: 'uber,lyft,gas,transit,metro' },
-      { name: 'Dining', keywords: 'restaurant,cafe,starbucks,bar' },
-      { name: 'Entertainment', keywords: 'netflix,spotify,movie,cinema' }
+      { name: 'Groceries', keywords: 'grocery,supermarket,walmart,tesco,aldi' },
+      { name: 'Transportation', keywords: 'uber,lyft,gas,transit,metro' },
+      { name: 'Food & Dining', keywords: 'restaurant,cafe,starbucks,bar' }
     ];
     for (const s of seeds) {
       await run('INSERT OR IGNORE INTO categories (name, keywords) VALUES (?, ?)', [s.name, s.keywords]);
